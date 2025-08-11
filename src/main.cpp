@@ -3,7 +3,7 @@
 #include "config.h"
 
 // controller
-pros::Controller controller(pros::E_CONTROLLER_MASTER);
+pros::Controller master(pros::E_CONTROLLER_MASTER);
 
 #ifdef USE_BLACK_BOT
 // === BLACK BOT CONFIG ===
