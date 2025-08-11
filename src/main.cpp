@@ -2,10 +2,15 @@
 #include "lemlib/api.hpp" // IWYU pragma: keep
 #include "config.h"
 
+#include "autons.hpp"
+#include "flywheel.hpp"
+#include "intake.hpp"
+#include "color_detection.hpp"
+
 // controller
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
-#ifdef USE_BLACK_BOT
+#ifdef BLACK_BOT
 // === BLACK BOT CONFIG ===
 pros::MotorGroup leftMotors({-5, 4, -3}, pros::MotorGearset::blue);
 pros::MotorGroup rightMotors({6, -9, 7}, pros::MotorGearset::blue);
@@ -27,7 +32,7 @@ lemlib::ExpoDriveCurve steerCurve(3, 10, 1.019);
 lemlib::Chassis chassis(drivetrain, linearController, angularController, sensors, &throttleCurve, &steerCurve);
 #endif
 
-#ifdef USE_RED_BOT
+#ifdef  RED_BOT
 // === RED BOT CONFIG ===
 pros::MotorGroup leftMotors({1, -2, 3}, pros::MotorGearset::blue);
 pros::MotorGroup rightMotors({-8, 7, 6}, pros::MotorGearset::blue);
@@ -144,11 +149,13 @@ void opcontrol()
 	while (true)
 	{
 		// get joystick positions
-		int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
-		int rightY = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
+		int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+		int rightY = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
 		// move the chassis with curvature drive
 		chassis.tank(leftY, rightY);
 		// delay to save resources
+		flywheel_control();
+		intake_control();
 		pros::delay(10);
 	}
 }

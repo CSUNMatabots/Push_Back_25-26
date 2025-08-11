@@ -7,7 +7,7 @@ int angle_moved = 0;
 double start_angle;
 double end_angle;
 
-/////////////////////////////////////Bottom Intake Code///////////////////////////////////
+// =======Bottom Intake Code========
 void b_intake_speed(int speed){
     bottom_intake.move(speed);
 }
@@ -26,7 +26,7 @@ void b_intake_reset(){
     bottom_intake.tare_position();
 }
 
-/////////////////////////////////////Middle Intake Code///////////////////////////////////
+// =======Middle Intake Code========
 void m_intake_speed(int speed){
     middle_intake.move(speed);
 }
@@ -45,7 +45,7 @@ void m_intake_reset(){
     middle_intake.tare_position();
 }
 
-/////////////////////////////////////Top Intake Code///////////////////////////////////
+// =======Top Intake Code========
 void t_intake_speed(int speed){
     top_intake.move(speed);
 }
@@ -64,7 +64,7 @@ void t_intake_reset(){
     top_intake.tare_position();
 }
 
-/////////////////////////////////////Roller Intake Code///////////////////////////////////
+// =======Roller Intake Code========
 void roller_speed(int speed){
     rollers.move(speed);
 }
@@ -85,7 +85,7 @@ void roller_reset(){
 
 
 
-/////////////////////////////////////Changer Intake Code///////////////////////////////////
+// =======Changer Intake Code========
 // void changer_speed(int speed){
 //     changer.move(speed);
 // }

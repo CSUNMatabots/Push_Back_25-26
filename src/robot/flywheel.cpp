@@ -1,5 +1,6 @@
 #include "main.h"
 #include "subsystems.hpp"
+#include "flywheel.hpp"
 
 int flywheel_counter = 0;
 bool toggle = false;

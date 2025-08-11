@@ -1,5 +1,12 @@
 #pragma once
 
+#include "api.h"
+#include "pros/motors.hpp"
+#include "lemlib/api.hpp"
+#include "pros/rotation.hpp"
+
+extern pros::Controller master;
+
 inline pros::Motor bottom_intake(15);
 inline pros::Motor middle_intake(14);
 inline pros::Motor top_intake(-13);
