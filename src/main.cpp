@@ -1,16 +1,32 @@
 #include "main.h"
 #include "lemlib/api.hpp" // IWYU pragma: keep
 #include "config.h"
+#include <iterator>
 
 #include "autons.hpp"
-#include "flywheel.hpp"
-#include "intake.hpp"
-#include "color_detection.hpp"
+#include "robot/flywheel.hpp"
+#include "robot/intake.hpp"
+#include "robot/color_detection.hpp"
+#include "robot/matchload.hpp"
+
+/*
+To Do...
+
+- Add an auton selector module 
+- Add two robot configurations (black and red bot) and upload the correct one based on the robot you are using
+- Use color detection code from last year 
+- Add correct auton code
+
+
+*/
+
+
+
+
 
 // controller
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
-#ifdef BLACK_BOT
 // === BLACK BOT CONFIG ===
 pros::MotorGroup leftMotors({-5, 4, -3}, pros::MotorGearset::blue);
 pros::MotorGroup rightMotors({6, -9, 7}, pros::MotorGearset::blue);
@@ -21,8 +37,26 @@ lemlib::TrackingWheel horizontal(&horizontalEnc, lemlib::Omniwheel::NEW_275, -5.
 lemlib::TrackingWheel vertical(&verticalEnc, lemlib::Omniwheel::NEW_275, -2.5);
 lemlib::Drivetrain drivetrain(&leftMotors, &rightMotors, 10, lemlib::Omniwheel::NEW_4, 360, 2);
 
-lemlib::ControllerSettings linearController(10, 0, 3, 3, 1, 100, 3, 500, 20);
-lemlib::ControllerSettings angularController(2, 0, 10, 3, 1, 100, 3, 500, 0);
+lemlib::ControllerSettings linearController(7, // proportional gain (kP)
+                                                0.07, // integral gain (kI)
+                                                20, // derivative gain (kD)
+                                                3, // anti windup
+                                                0.25, // small error range, in inches
+                                                100, // small error range timeout, in milliseconds
+                                                1, // large error range, in inches
+                                                500, // large error range timeout, in milliseconds
+                                                16 // maximum acceleration (slew)
+);
+lemlib::ControllerSettings angularController(2.8, // proportional gain (kP)
+                                                0.06, // integral gain (kI)
+                                                18, // derivative gain (kD)
+                                                3, // anti windup
+                                                0.5, // small error range, in degrees
+                                                100, // small error range timeout, in milliseconds
+                                                1, // large error range, in degrees
+                                                500, // large error range timeout, in milliseconds
+                                                0 // maximum acceleration (slew)
+);
 
 lemlib::OdomSensors sensors(&vertical, nullptr, &horizontal, nullptr, &imu);
 
@@ -30,29 +64,29 @@ lemlib::ExpoDriveCurve throttleCurve(3, 10, 1.019);
 lemlib::ExpoDriveCurve steerCurve(3, 10, 1.019);
 
 lemlib::Chassis chassis(drivetrain, linearController, angularController, sensors, &throttleCurve, &steerCurve);
-#endif
 
-#ifdef  RED_BOT
-// === RED BOT CONFIG ===
-pros::MotorGroup leftMotors({1, -2, 3}, pros::MotorGearset::blue);
-pros::MotorGroup rightMotors({-8, 7, 6}, pros::MotorGearset::blue);
-pros::Imu imu(16);
-pros::Rotation horizontalEnc(19);
-pros::Rotation verticalEnc(-12);
-lemlib::TrackingWheel horizontal(&horizontalEnc, lemlib::Omniwheel::NEW_275, -6.0);
-lemlib::TrackingWheel vertical(&verticalEnc, lemlib::Omniwheel::NEW_275, -3.0);
-lemlib::Drivetrain drivetrain(&leftMotors, &rightMotors, 11, lemlib::Omniwheel::NEW_4, 360, 2);
 
-lemlib::ControllerSettings linearController(12, 0, 4, 3, 1, 100, 3, 500, 15);
-lemlib::ControllerSettings angularController(2.5, 0.1, 8, 3, 1, 100, 3, 500, 0);
+// #ifdef RED_BOT
+// // === RED BOT CONFIG ===
+// pros::MotorGroup leftMotors({1, -2, 3}, pros::MotorGearset::blue);
+// pros::MotorGroup rightMotors({-8, 7, 6}, pros::MotorGearset::blue);
+// pros::Imu imu(16);
+// pros::Rotation horizontalEnc(19);
+// pros::Rotation verticalEnc(-12);
+// lemlib::TrackingWheel horizontal(&horizontalEnc, lemlib::Omniwheel::NEW_275, -6.0);
+// lemlib::TrackingWheel vertical(&verticalEnc, lemlib::Omniwheel::NEW_275, -3.0);
+// lemlib::Drivetrain drivetrain(&leftMotors, &rightMotors, 11, lemlib::Omniwheel::NEW_4, 360, 2);
 
-lemlib::OdomSensors sensors(&vertical, nullptr, &horizontal, nullptr, &imu);
+// lemlib::ControllerSettings linearController(12, 0, 4, 3, 1, 100, 3, 500, 15);
+// lemlib::ControllerSettings angularController(2.5, 0.1, 8, 3, 1, 100, 3, 500, 0);
 
-lemlib::ExpoDriveCurve throttleCurve(3, 10, 1.019);
-lemlib::ExpoDriveCurve steerCurve(3, 10, 1.019);
+// lemlib::OdomSensors sensors(&vertical, nullptr, &horizontal, nullptr, &imu);
 
-lemlib::Chassis chassis(drivetrain, linearController, angularController, sensors, &throttleCurve, &steerCurve);
-#endif
+// lemlib::ExpoDriveCurve throttleCurve(3, 10, 1.019);
+// lemlib::ExpoDriveCurve steerCurve(3, 10, 1.019);
+
+// lemlib::Chassis chassis(drivetrain, linearController, angularController, sensors, &throttleCurve, &steerCurve);
+// #endif
 
 
 
@@ -98,7 +132,52 @@ void disabled() {}
 /**
  * runs after initialize if the robot is connected to field control
  */
-void competition_initialize() {}
+
+int selected_auton = 0;
+const char* AUTON_NAMES[] = {"Auton 1", "Auton 2", "Auton 3"};
+void (*AUTON_FUNCS[])()   = {auton_left,    auton_right,    auton_skills};
+const int NUM_AUTONS  = sizeof(AUTON_FUNCS)/sizeof(AUTON_FUNCS[0]);
+
+void competition_initialize() {
+// Auton selector when connected to field control
+
+const auto BTN_PREV    = pros::E_CONTROLLER_DIGITAL_LEFT;
+const auto BTN_NEXT    = pros::E_CONTROLLER_DIGITAL_RIGHT;
+const auto BTN_CONFIRM = pros::E_CONTROLLER_DIGITAL_A;
+
+pros::lcd::initialize(); // Initialize the LCD screen
+
+
+  while (true) {
+    if (master.get_digital_new_press(BTN_PREV)) { // Navigate to previous auton
+	  // Wrap around if at the beginning
+      selected_auton = (selected_auton - 1 + NUM_AUTONS) % NUM_AUTONS;
+    } else if (master.get_digital_new_press(BTN_NEXT)) { // Navigate to next auton
+	  // Wrap around if at the end
+	  selected_auton = (selected_auton + 1) % NUM_AUTONS;
+	}
+   
+
+    // Refresh display
+    master.clear_line(2);
+    master.print(2, 0, "Auton: %s", AUTON_NAMES[selected_auton]);
+    pros::lcd::print(0, "Auton: %s", AUTON_NAMES[selected_auton]);
+
+        if (master.get_digital_new_press(BTN_CONFIRM)) {
+            master.rumble(".");
+            break;
+        }
+        pros::delay(100);
+    }
+
+  // Set the selected autonomous routine
+  master.clear_line(2);
+  master.print(2, 0, "Selected: %s", AUTON_NAMES[selected_auton]);
+  pros::lcd::print(0, "Selected: %s", AUTON_NAMES[selected_auton]);
+
+
+
+}
 
 // get a path used for pure pursuit
 // this needs to be put outside a function
@@ -109,34 +188,11 @@ ASSET(example_txt); // '.' replaced with "_" to make c++ happy
  *
  * This is an example autonomous routine which demonstrates a lot of the features LemLib has to offer
  */
-void autonomous()
-{
-	// Move to x: 20 and y: 15, and face heading 90. Timeout set to 4000 ms
-	chassis.moveToPose(20, 15, 90, 4000);
-	// Move to x: 0 and y: 0 and face heading 270, going backwards. Timeout set to 4000ms
-	chassis.moveToPose(0, 0, 270, 4000, {.forwards = false});
-	// cancel the movement after it has traveled 10 inches
-	chassis.waitUntil(10);
-	chassis.cancelMotion();
-	// Turn to face the point x:45, y:-45. Timeout set to 1000
-	// dont turn faster than 60 (out of a maximum of 127)
-	chassis.turnToPoint(45, -45, 1000, {.maxSpeed = 60});
-	// Turn to face a direction of 90º. Timeout set to 1000
-	// will always be faster than 100 (out of a maximum of 127)
-	// also force it to turn clockwise, the long way around
-	chassis.turnToHeading(90, 1000, {.direction = AngularDirection::CW_CLOCKWISE, .minSpeed = 100});
-	// Follow the path in path.txt. Lookahead at 15, Timeout set to 4000
-	// following the path with the back of the robot (forwards = false)
-	// see line 116 to see how to define a path
-	chassis.follow(example_txt, 15, 4000, false);
-	// wait until the chassis has traveled 10 inches. Otherwise the code directly after
-	// the movement will run immediately
-	// Unless its another movement, in which case it will wait
-	chassis.waitUntil(10);
-	pros::lcd::print(4, "Traveled 10 inches during pure pursuit!");
-	// wait until the movement is done
-	chassis.waitUntilDone();
-	pros::lcd::print(4, "pure pursuit finished!");
+void autonomous() {
+	
+AUTON_FUNCS[selected_auton]();
+
+
 }
 
 /**
@@ -156,6 +212,8 @@ void opcontrol()
 		// delay to save resources
 		flywheel_control();
 		intake_control();
+		piston_control();
+		roller_control();
 		pros::delay(10);
 	}
 }

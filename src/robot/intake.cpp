@@ -66,21 +66,21 @@ void t_intake_reset(){
 
 // =======Roller Intake Code========
 void roller_speed(int speed){
-    rollers.move(speed);
+    intake_rollers.move(speed);
 }
 
 void roller_set_pos(double pos, int speed){
-    rollers.move_absolute(pos, speed);
+    intake_rollers.move_absolute(pos, speed);
 }
 
 void roller_delay(int speed, int delay){
-    rollers.move(speed);
+    intake_rollers.move(speed);
     pros::delay(delay);
-    rollers.move(0);
+    intake_rollers.move(0);
 }
 
 void roller_reset(){
-    rollers.tare_position();
+    intake_rollers.tare_position();
 }
 
 
@@ -145,7 +145,7 @@ void roller_reset(){
 //     }
 // }
 
-void intake_control(){
+void intake_control(){ // Uses buttons: Up, Down, R1, R2, L1, L2, A
 
     //Middle Intake (Rollers that are connected to the storage) Controls
     if (master.get_digital(DIGITAL_UP)){
@@ -216,10 +216,10 @@ void intake_control(){
         roller_state = !roller_state;
     }
     if (roller_state){
-        rollers.move(127);
+        intake_rollers.move(127);
     }
     else{
-        rollers.move(0);
+        intake_rollers.move(0);
     }
 
 }
