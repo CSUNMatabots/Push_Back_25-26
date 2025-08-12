@@ -41,12 +41,55 @@ chassis.setPose(-17, -63.25, 0);
 b_intake_speed(-127);
 t_intake_speed(-127);
   
-chassis.moveToPoint(-17, -39.25, 2000);
-chassis.moveToPoint(-17, -24, 2000);
-chassis.moveToPose(-20, 0, 270, 2500);
+    // --- Block 1: go slow, ensure contact ---
+    chassis.moveToPoint(-17, -39.25, 2000);
+    chassis.waitUntilDone();
+
+    chassis.moveToPoint(-17, -24, 2000);
+    chassis.waitUntilDone();
+
+    chassis.moveToPose (-20, 0, 270, 2500);        // heading specified
+    chassis.waitUntilDone();
+
+    chassis.moveToPoint( 36, 0, 2500);     
+    chassis.waitUntilDone();
+    
+
+    // --- Block 2: to left match-load zone ---
+    chassis.moveToPoint(-36, -24,   2000);
+    chassis.waitUntilDone();
+
+    chassis.moveToPoint(-36, -36,   2000);
+    chassis.waitUntilDone();
+
+    chassis.moveToPoint(-48, -48,   2500);
+    chassis.waitUntilDone();
+
+    chassis.moveToPoint(-51, -62.5, 3000);
+    chassis.waitUntilDone();
+
+    pros::delay(3000); // wait to collect
+
+    // --- Block 3: to left high-goal zone ---
+    chassis.moveToPoint(-50, -45, 2500); 
+    chassis.waitUntilDone();
+
+  
+    chassis.moveToPoint(-50, -36, 2000);
+    chassis.waitUntilDone();
 
 
+    // shooter/intakes like your original
+    t_intake_speed(-127);
+    b_intake_speed(-127);
+    flywheel_speed(127);
+    pros::delay(3000);
+    t_intake_speed(0);
+    b_intake_speed(0);
+    flywheel_speed(0);
 }
+
+
 
 
 

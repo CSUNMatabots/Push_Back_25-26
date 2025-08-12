@@ -134,9 +134,10 @@ void disabled() {}
  */
 
 int selected_auton = 0;
-const char* AUTON_NAMES[] = {"Auton 1", "Auton 2", "Auton 3"};
+const char* AUTON_NAMES[] = {"Left", "Right", "Skills"};
 void (*AUTON_FUNCS[])()   = {auton_left,    auton_right,    auton_skills};
 const int NUM_AUTONS  = sizeof(AUTON_FUNCS)/sizeof(AUTON_FUNCS[0]);
+
 
 void competition_initialize() {
 // Auton selector when connected to field control
