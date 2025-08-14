@@ -186,11 +186,14 @@ void intake_control(){ // Uses buttons: Up, Down, R1, R2, L1, L2, A
     //     bottom_intake.move(0);
     // }
 
+
+    //Top Only Controls
     if (master.get_digital(DIGITAL_R1)){
         top_intake.move(127);
     }
     else if (master.get_digital(DIGITAL_R2)){
         top_intake.move(-127);
+        flywheel.move(127);
     }
     else {
         top_intake.move(0);

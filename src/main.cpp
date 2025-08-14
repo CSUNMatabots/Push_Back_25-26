@@ -30,12 +30,12 @@ pros::Controller master(pros::E_CONTROLLER_MASTER);
 // === BLACK BOT CONFIG ===
 pros::MotorGroup leftMotors({-5, 4, -3}, pros::MotorGearset::blue);
 pros::MotorGroup rightMotors({6, -9, 7}, pros::MotorGearset::blue);
-pros::Imu imu(10);
+pros::Imu imu(21);
 pros::Rotation horizontalEnc(20);
 pros::Rotation verticalEnc(-11);
 lemlib::TrackingWheel horizontal(&horizontalEnc, lemlib::Omniwheel::NEW_275, -5.75);
 lemlib::TrackingWheel vertical(&verticalEnc, lemlib::Omniwheel::NEW_275, -2.5);
-lemlib::Drivetrain drivetrain(&leftMotors, &rightMotors, 10, lemlib::Omniwheel::NEW_4, 360, 2);
+lemlib::Drivetrain drivetrain(&leftMotors, &rightMotors, 12.5, lemlib::Omniwheel::NEW_4, 480, 5);
 
 lemlib::ControllerSettings linearController(7, // proportional gain (kP)
                                                 0.07, // integral gain (kI)
@@ -58,7 +58,7 @@ lemlib::ControllerSettings angularController(2.8, // proportional gain (kP)
                                                 0 // maximum acceleration (slew)
 );
 
-lemlib::OdomSensors sensors(&vertical, nullptr, &horizontal, nullptr, &imu);
+lemlib::OdomSensors sensors(nullptr, nullptr, nullptr, nullptr, &imu);
 
 lemlib::ExpoDriveCurve throttleCurve(3, 10, 1.019);
 lemlib::ExpoDriveCurve steerCurve(3, 10, 1.019);
@@ -211,10 +211,12 @@ void opcontrol()
 		// move the chassis with curvature drive
 		chassis.tank(leftY, rightY);
 		// delay to save resources
+    
 		flywheel_control();
 		intake_control();
 		piston_control();
 		roller_control();
+
 		pros::delay(10);
 	}
 }
