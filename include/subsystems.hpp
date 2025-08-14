@@ -4,6 +4,7 @@
 #include "pros/adi.hpp"
 #include "pros/motors.hpp"
 #include "lemlib/api.hpp"
+#include "pros/optical.hpp"
 
 
 extern pros::Controller master;
@@ -16,10 +17,11 @@ inline pros::MotorGroup intake_rollers({19, -5});
 //inline pros::Motor changer(12);
 
 inline pros::MotorGroup flywheel({-12,10});
-
 inline pros::Motor matchload(14);
 
+//Sensors and Pneumatics
 inline pros::adi::Pneumatics piston('H', false);
+inline pros::Optical eye (4);
 
 
 
