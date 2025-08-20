@@ -192,10 +192,12 @@ void intake_control(){ // Uses buttons: Up, Down, R1, R2, L1, L2, A
         top_intake.move(127);
     }
     else if (master.get_digital(DIGITAL_R2)){
+        flywheel.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
         top_intake.move(-127);
         flywheel.move(127);
     }
     else {
+        flywheel.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD); //Prevents blocks from being pushed back inside 
         top_intake.move(0);
     }
 
