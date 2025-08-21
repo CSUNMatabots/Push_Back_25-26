@@ -222,6 +222,8 @@ void opcontrol()
 		piston_control();
 		roller_control();
 
+    objectDetectionTask();
+
 		pros::delay(10);
 	}
 }

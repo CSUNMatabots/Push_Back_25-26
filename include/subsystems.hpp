@@ -22,7 +22,9 @@ inline pros::Motor matchload(14);
 
 //Sensors and Pneumatics
 inline pros::adi::Pneumatics piston('H', false);
+inline pros::adi::Pneumatics ejector('G', false);
 inline pros::Optical eye (4);
+inline pros::Distance distance_sensor(9);
 
 
 
