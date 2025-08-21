@@ -2,6 +2,7 @@
 #include "subsystems.hpp"
 #include "pros/optical.h"
 #include "color_detection.hpp"
+#include "pros/colors.hpp"
 
 ColorTarget Red = ColorTarget::RED;
 ColorTarget Blue = ColorTarget::BLUE;

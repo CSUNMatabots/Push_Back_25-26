@@ -28,13 +28,13 @@ To Do...
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
 // === BLACK BOT CONFIG ===
-pros::MotorGroup leftMotors({-5, 4, -3}, pros::MotorGearset::blue);
-pros::MotorGroup rightMotors({6, -9, 7}, pros::MotorGearset::blue);
+pros::MotorGroup leftMotors({-8, -6, -9}, pros::MotorGearset::blue);
+pros::MotorGroup rightMotors({18, 20, 16}, pros::MotorGearset::blue);
 pros::Imu imu(21);
-pros::Rotation horizontalEnc(20);
-pros::Rotation verticalEnc(-11);
-lemlib::TrackingWheel horizontal(&horizontalEnc, lemlib::Omniwheel::NEW_275, -5.75);
-lemlib::TrackingWheel vertical(&verticalEnc, lemlib::Omniwheel::NEW_275, -2.5);
+// pros::Rotation horizontalEnc(20);
+// pros::Rotation verticalEnc(-11);
+// lemlib::TrackingWheel horizontal(&horizontalEnc, lemlib::Omniwheel::NEW_275, -5.75);
+// lemlib::TrackingWheel vertical(&verticalEnc, lemlib::Omniwheel::NEW_275, -2.5);
 lemlib::Drivetrain drivetrain(&leftMotors, &rightMotors, 12.5, lemlib::Omniwheel::NEW_4, 480, 5);
 
 lemlib::ControllerSettings linearController(7, // proportional gain (kP)
@@ -214,7 +214,9 @@ void opcontrol()
   
 //Robot Systems
 		flywheel_control();
+
 		intake_control();
+    
 		piston_control();
 		roller_control();
 

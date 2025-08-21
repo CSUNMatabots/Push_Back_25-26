@@ -1,3 +1,4 @@
+#include "intake.hpp"
 #include "main.h"
 #include "subsystems.hpp"
 
@@ -66,21 +67,21 @@ void t_intake_reset(){
 
 // =======Roller Intake Code========
 void roller_speed(int speed){
-    intake_rollers.move(speed);
+    hopper.move(speed);
 }
 
 void roller_set_pos(double pos, int speed){
-    intake_rollers.move_absolute(pos, speed);
+    hopper.move_absolute(pos, speed);
 }
 
 void roller_delay(int speed, int delay){
-    intake_rollers.move(speed);
+    hopper.move(speed);
     pros::delay(delay);
-    intake_rollers.move(0);
+    hopper.move(0);
 }
 
 void roller_reset(){
-    intake_rollers.tare_position();
+    hopper.tare_position();
 }
 
 
@@ -146,85 +147,61 @@ void roller_reset(){
 // }
 
 void intake_control(){ // Uses buttons: Up, Down, R1, R2, L1, L2, A
+    int b = 0;
+    int m = 0;
+    int t = 0;
+    int ml = 0;
+    int hop = 0;
+    int ag = 0;
 
-    //Middle Intake (Rollers that are connected to the storage) Controls
-    if (master.get_digital(DIGITAL_UP)){
-        middle_intake.move(127);
-    }
-    else if (master.get_digital(DIGITAL_DOWN)){
-        middle_intake.move(-127);
-    }
-    else{
-        middle_intake.move(0);
-    }
+    if (master.get_digital(DIGITAL_L1) && master.get_digital(DIGITAL_L2) ) { // Check combo case first
+        // Take out hopper, score out-low 
+        hop = 127;
+        m   = 127;
+        ag  = 127;
+        ml = 127;
+        piston.set_value(0);
 
+    } else if (master.get_digital(DIGITAL_L2)) {
+        // Take out hopper, score out-high
+        hop = 127;
+        m   = -127;
+        t   = -127;
+        ag  = 127;
+        piston.set_value(0);
     
-    //Angle Changer Controls
-    // if (master.get_digital(DIGITAL_RIGHT)){
-    //     //changer_open();
-    //     changer.move(30);
-    // }
-    // else if (master.get_digital(DIGITAL_LEFT)){
-    //     //changer_close();
-    //     changer.move(-30);
-    // }
-    // else {
-    //     changer.move(5);
-    // }
+    } else if (master.get_digital(DIGITAL_L1)) {
+        // Take out hopper, score out-mid
+        hop = 127;
+        m   = -127;
+        ag  = 127;
+        piston.set_value(0); 
 
-    //Top And Bottom Intake Controls
-    // if (master.get_digital(DIGITAL_R1)){
-    //     top_intake.move(127);
-    //     bottom_intake.move(127);
-    // }
-    // else if (master.get_digital(DIGITAL_R2)){
-    //     top_intake.move(-127);
-    //     bottom_intake.move(-127);
-    // }
-    // else {
-    //     top_intake.move(0);
-    //     bottom_intake.move(0);
-    // }
+    } else if (master.get_digital(DIGITAL_R1)) {
+        // Score High 
+        b = 127;
+        m = 127;
+        t = 127;
+        ml = 127;
+        piston.set_value(0);
 
+    } else if (master.get_digital(DIGITAL_R2)) {
+        // Score Low 
+        b = -127;
+        m = -127;
+        t = -127;
+        ml = -127;
+        piston.set_value(0);
 
-    //Top Only Controls
-    if (master.get_digital(DIGITAL_R1)){
-        top_intake.move(127);
-    }
-    else if (master.get_digital(DIGITAL_R2)){
-        flywheel.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
-        top_intake.move(-127);
-        flywheel.move(127);
-    }
-    else {
-        flywheel.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD); //Prevents blocks from being pushed back inside 
-        top_intake.move(0);
+    } else {
+        // Stop everything
+        b = m = t = ml = hop = ag = 0;
     }
 
-    //Bottom Only Controls
-    if (master.get_digital(DIGITAL_L1)){
-        bottom_intake.move(127);
-    }
-    else if (master.get_digital(DIGITAL_L2)){
-        bottom_intake.move(-127);
-    }
-    else {
-        //This allows for the bottom roller to still move
-        //when either R1 or R2 is pressed
-        // if (!(master.get_digital(DIGITAL_R1) || master.get_digital(DIGITAL_R2))){
-        //     bottom_intake.move(0);
-        // }
-        bottom_intake.move(0);
-    }
-
-    if (master.get_digital_new_press(DIGITAL_A)){
-        roller_state = !roller_state;
-    }
-    if (roller_state){
-        intake_rollers.move(127);
-    }
-    else{
-        intake_rollers.move(0);
-    }
-
+    bottom_intake.move(b);
+    middle_intake.move(m);
+    top_intake.move(t);
+    matchload.move(ml);
+    hopper.move(hop);
+    agitator.move(ag);
 }

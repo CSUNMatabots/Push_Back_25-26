@@ -11,12 +11,12 @@ extern pros::Controller master;
 extern lemlib::Chassis chassis;
 
 inline pros::Motor bottom_intake(15);
-inline pros::Motor middle_intake(17);
+inline pros::Motor middle_intake(5);
 inline pros::Motor top_intake(-13);
-inline pros::MotorGroup intake_rollers({19, -5});
-//inline pros::Motor changer(12);
+inline pros::Motor hopper(10);
+inline pros::Motor agitator(19);
 
-inline pros::MotorGroup flywheel({-12,10});
+inline pros::MotorGroup flywheel({-12,1});
 inline pros::Motor matchload(14);
 
 //Sensors and Pneumatics
