@@ -2,6 +2,70 @@
 #include "main.h"
 #include "subsystems.hpp"
 
+void intake_control(){ // Uses back buttons
+    int b = 0;
+    int m = 0;
+    int t = 0;
+    int ml = 0;
+    int hop = 0;
+    int ag = 0;
+
+    if (master.get_digital(DIGITAL_L1) && master.get_digital(DIGITAL_L2) ) { // Check combo case first
+        // Both Left Back Buttons -- Take out hopper, score out-low 
+        hop = 127;
+        m   = 127;
+        ag  = 127;
+        ml = 127;
+        piston.set_value(0);
+
+    } else if (master.get_digital(DIGITAL_L2)) {
+        // Left Back Button -- Take out hopper, score out-high
+        hop = 127;
+        m   = -127;
+        t   = -127;
+        ag  = 127;
+        piston.set_value(0);
+    
+    } else if (master.get_digital(DIGITAL_L1)) {
+        // Left Front Button -- Take out hopper, score out-mid
+        hop = 127;
+        m   = -127;
+        ag  = 127;
+        piston.set_value(0); 
+
+    } else if (master.get_digital(DIGITAL_R1)) {
+        // Right Front Button -- Score High
+        b = 127;
+        m = 127;
+        t = 127;
+        ml = 127;
+        piston.set_value(0);
+
+    } else if (master.get_digital(DIGITAL_R2)) {
+        // Right Back Button -- Score Low
+        b = -127;
+        m = -127;
+        t = -127;
+        ml = -127;
+        piston.set_value(0);
+
+    } else {
+        // Stop everything
+        b = m = t = ml = hop = ag = 0;
+    }
+
+    bottom_intake.move(b);
+    middle_intake.move(m);
+    top_intake.move(t);
+    matchload.move(ml);
+    hopper.move(hop);
+    agitator.move(ag);
+}
+
+
+// ============ Auton Code =============
+
+
 bool roller_state = false;
 
 int angle_moved = 0;
@@ -146,62 +210,3 @@ void roller_reset(){
 //     }
 // }
 
-void intake_control(){ // Uses buttons: Up, Down, R1, R2, L1, L2, A
-    int b = 0;
-    int m = 0;
-    int t = 0;
-    int ml = 0;
-    int hop = 0;
-    int ag = 0;
-
-    if (master.get_digital(DIGITAL_L1) && master.get_digital(DIGITAL_L2) ) { // Check combo case first
-        // Take out hopper, score out-low 
-        hop = 127;
-        m   = 127;
-        ag  = 127;
-        ml = 127;
-        piston.set_value(0);
-
-    } else if (master.get_digital(DIGITAL_L2)) {
-        // Take out hopper, score out-high
-        hop = 127;
-        m   = -127;
-        t   = -127;
-        ag  = 127;
-        piston.set_value(0);
-    
-    } else if (master.get_digital(DIGITAL_L1)) {
-        // Take out hopper, score out-mid
-        hop = 127;
-        m   = -127;
-        ag  = 127;
-        piston.set_value(0); 
-
-    } else if (master.get_digital(DIGITAL_R1)) {
-        // Score High 
-        b = 127;
-        m = 127;
-        t = 127;
-        ml = 127;
-        piston.set_value(0);
-
-    } else if (master.get_digital(DIGITAL_R2)) {
-        // Score Low 
-        b = -127;
-        m = -127;
-        t = -127;
-        ml = -127;
-        piston.set_value(0);
-
-    } else {
-        // Stop everything
-        b = m = t = ml = hop = ag = 0;
-    }
-
-    bottom_intake.move(b);
-    middle_intake.move(m);
-    top_intake.move(t);
-    matchload.move(ml);
-    hopper.move(hop);
-    agitator.move(ag);
-}

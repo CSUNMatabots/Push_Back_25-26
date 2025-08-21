@@ -3,6 +3,8 @@
 #include "config.h"
 #include <iterator>
 
+#include "pros/rotation.hpp"
+
 #include "autons.hpp"
 #include "robot/flywheel.hpp"
 #include "robot/intake.hpp"
@@ -27,14 +29,14 @@ To Do...
 // controller
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
-// === BLACK BOT CONFIG ===
+// === 15" BOT CONFIG ===
 pros::MotorGroup leftMotors({-8, -6, -9}, pros::MotorGearset::blue);
 pros::MotorGroup rightMotors({18, 20, 16}, pros::MotorGearset::blue);
 pros::Imu imu(21);
-// pros::Rotation horizontalEnc(20);
-// pros::Rotation verticalEnc(-11);
-// lemlib::TrackingWheel horizontal(&horizontalEnc, lemlib::Omniwheel::NEW_275, -5.75);
-// lemlib::TrackingWheel vertical(&verticalEnc, lemlib::Omniwheel::NEW_275, -2.5);
+pros::Rotation horizontalEnc(1);
+pros::Rotation verticalEnc(2);
+lemlib::TrackingWheel horizontalTW(&horizontalEnc, lemlib::Omniwheel::OLD_275, -0.25);
+lemlib::TrackingWheel verticalTW(&verticalEnc, lemlib::Omniwheel::OLD_275, 0);
 lemlib::Drivetrain drivetrain(&leftMotors, &rightMotors, 12.5, lemlib::Omniwheel::NEW_4, 480, 5);
 
 lemlib::ControllerSettings linearController(7, // proportional gain (kP)
@@ -58,7 +60,7 @@ lemlib::ControllerSettings angularController(2.8, // proportional gain (kP)
                                                 0 // maximum acceleration (slew)
 );
 
-lemlib::OdomSensors sensors(nullptr, nullptr, nullptr, nullptr, &imu);
+lemlib::OdomSensors sensors(&verticalTW, nullptr, &horizontalTW, nullptr, &imu);
 
 lemlib::ExpoDriveCurve throttleCurve(3, 10, 1.019);
 lemlib::ExpoDriveCurve steerCurve(3, 10, 1.019);
@@ -67,7 +69,7 @@ lemlib::Chassis chassis(drivetrain, linearController, angularController, sensors
 
 
 // #ifdef RED_BOT
-// // === RED BOT CONFIG ===
+// // === 24" Bot CONFIG ===
 // pros::MotorGroup leftMotors({1, -2, 3}, pros::MotorGearset::blue);
 // pros::MotorGroup rightMotors({-8, 7, 6}, pros::MotorGearset::blue);
 // pros::Imu imu(16);

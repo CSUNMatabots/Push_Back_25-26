@@ -10,13 +10,14 @@
 extern pros::Controller master;
 extern lemlib::Chassis chassis;
 
+
+// Ports up to date 
 inline pros::Motor bottom_intake(15);
 inline pros::Motor middle_intake(5);
 inline pros::Motor top_intake(-13);
 inline pros::Motor hopper(10);
 inline pros::Motor agitator(19);
-
-inline pros::MotorGroup flywheel({-12,1});
+inline pros::MotorGroup flywheel({3,4});
 inline pros::Motor matchload(14);
 
 //Sensors and Pneumatics
