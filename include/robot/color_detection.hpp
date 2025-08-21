@@ -5,4 +5,4 @@ enum class ColorTarget { RED, BLUE };
 // extern ColorTarget Red;
 // extern ColorTarget Blue;
 
-void objectDetectionTask(void* param); //Runs independently as task during auton 
+void objectDetectionTask(); //Make as task during auton 
