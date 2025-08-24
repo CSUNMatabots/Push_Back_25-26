@@ -17,14 +17,16 @@ void piston_control() {
     }
 }
 
-void roller_control() {
-    if (master.get_digital(DIGITAL_B)) {
-        matchload.move(127);
-    } 
-    else if (master.get_digital(DIGITAL_Y)) {
-        matchload.move(-127);
-    } 
-    else {
-        matchload.move(0);
+bool Extended = false;
+
+void extender_control() { 
+    if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
+        Extended = !Extended;  // Toggle state
+        
+        if (Extended) {
+            ejector.set_value(1);  // extend piston
+        } else {
+            ejector.set_value(0);  // retract piston
+        }
     }
 }
