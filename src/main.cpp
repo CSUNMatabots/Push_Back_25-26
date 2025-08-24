@@ -216,7 +216,6 @@ void opcontrol()
   
 //Robot Systems
 		flywheel_control();
-
 		intake_control();
     
 		piston_control();
