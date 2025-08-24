@@ -3,12 +3,13 @@
 #include "subsystems.hpp"
 
 void intake_control(){ // Uses back buttons
-    int b = 0;
+    // int b = 0;
     int m = 0;
     int t = 0;
     int ml = 0;
     int hop = 0;
     int ag = 0;
+    int fly = 0; 
 
     if (master.get_digital(DIGITAL_L1) && master.get_digital(DIGITAL_L2) ) { // Check combo case first
         // Both Left Back Buttons -- Take out hopper, score out-low 
@@ -24,6 +25,7 @@ void intake_control(){ // Uses back buttons
         m   = -127;
         t   = -127;
         ag  = 127;
+        fly = 127;
         piston.set_value(0);
     
     } else if (master.get_digital(DIGITAL_L1)) {
@@ -33,33 +35,32 @@ void intake_control(){ // Uses back buttons
         ag  = 127;
         piston.set_value(0); 
 
-    } else if (master.get_digital(DIGITAL_R1)) {
-        // Right Front Button -- Score High
-        b = 127;
-        m = 127;
-        t = 127;
-        ml = 127;
-        piston.set_value(0);
-
     } else if (master.get_digital(DIGITAL_R2)) {
-        // Right Back Button -- Score Low
-        b = -127;
+        // Right Front Button -- Score High
         m = -127;
         t = -127;
+        ml = 127;
+        fly = 127; 
+        piston.set_value(0);
+
+    } else if (master.get_digital(DIGITAL_R1)) {
+        // Right Back Button -- Score Low
+        m = 127;
+        t = 127;
         ml = -127;
         piston.set_value(0);
 
     } else {
         // Stop everything
-        b = m = t = ml = hop = ag = 0;
+        m = t = ml = hop = ag = fly = 0;
     }
 
-    bottom_intake.move(b);
     middle_intake.move(m);
     top_intake.move(t);
     matchload.move(ml);
     hopper.move(hop);
     agitator.move(ag);
+    flywheel.move(fly);
 }
 
 
@@ -72,24 +73,24 @@ int angle_moved = 0;
 double start_angle;
 double end_angle;
 
-// =======Bottom Intake Code========
-void b_intake_speed(int speed){
-    bottom_intake.move(speed);
-}
+// // =======Bottom Intake Code========
+// void b_intake_speed(int speed){
+//     bottom_intake.move(speed);
+// }
 
-void b_intake_set_pos(double pos, int speed){
-    bottom_intake.move_absolute(pos, speed);
-}
+// void b_intake_set_pos(double pos, int speed){
+//     bottom_intake.move_absolute(pos, speed);
+// }
 
-void b_intake_delay(int speed, int delay){
-    bottom_intake.move(speed);
-    pros::delay(delay);
-    bottom_intake.move(0);
-}
+// void b_intake_delay(int speed, int delay){
+//     bottom_intake.move(speed);
+//     pros::delay(delay);
+//     bottom_intake.move(0);
+// }
 
-void b_intake_reset(){
-    bottom_intake.tare_position();
-}
+// void b_intake_reset(){
+//     bottom_intake.tare_position();
+// }
 
 // =======Middle Intake Code========
 void m_intake_speed(int speed){

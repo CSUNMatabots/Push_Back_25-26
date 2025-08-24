@@ -2,6 +2,7 @@
 #include "lemlib/api.hpp" // IWYU pragma: keep
 #include "config.h"
 #include <iterator>
+#include "subsystems.hpp"
 
 #include "pros/rotation.hpp"
 
@@ -214,12 +215,13 @@ void opcontrol()
 		chassis.tank(leftY, rightY);
 		// delay to save resources
   
+
 //Robot Systems
 		flywheel_control();
 		intake_control();
     
 		piston_control();
-		roller_control();
+    extender_control();
 
     objectDetectionTask();
 
