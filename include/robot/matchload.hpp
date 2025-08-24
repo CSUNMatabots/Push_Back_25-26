@@ -1,7 +1,8 @@
 #pragma once
 
-void piston_control();
-void extender_control();
+void matchload_control();
+void matchload_engage();
+// void extender_control();
 // void roller_control();
 
 // Function to control the piston and roller intake

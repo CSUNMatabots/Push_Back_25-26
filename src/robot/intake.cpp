@@ -1,6 +1,7 @@
 #include "intake.hpp"
 #include "main.h"
 #include "subsystems.hpp"
+#include "controls.h"
 
 void intake_control(){ // Uses back buttons
     // int b = 0;
@@ -16,10 +17,10 @@ void intake_control(){ // Uses back buttons
         hop = 127;
         m   = 127;
         ag  = 127;
-        ml = 127;
+        ml = -127;
         piston.set_value(0);
 
-    } else if (master.get_digital(DIGITAL_L2)) {
+    } else if (master.get_digital(ScoreTop_Hopper)) {
         // Left Back Button -- Take out hopper, score out-high
         hop = 127;
         m   = -127;
@@ -27,28 +28,30 @@ void intake_control(){ // Uses back buttons
         ag  = 127;
         fly = 127;
         piston.set_value(0);
+        ejector.set_value(1);
     
-    } else if (master.get_digital(DIGITAL_L1)) {
+    } else if (master.get_digital(ScoreMid_Hopper)) {
         // Left Front Button -- Take out hopper, score out-mid
         hop = 127;
         m   = -127;
         ag  = 127;
         piston.set_value(0); 
 
-    } else if (master.get_digital(DIGITAL_R2)) {
-        // Right Front Button -- Score High
+    } else if (master.get_digital(Into_Hopper_Button)) {
+        // Right Front Button -- Into Hopper
         m = -127;
         t = -127;
         ml = 127;
         fly = 127; 
         piston.set_value(0);
+        ejector.set_value(0);
 
-    } else if (master.get_digital(DIGITAL_R1)) {
-        // Right Back Button -- Score Low
-        m = 127;
-        t = 127;
-        ml = -127;
-        piston.set_value(0);
+    // } else if (master.get_digital(DIGITAL_R1)) {
+    //     // Right Back Button -- Score Low
+    //     m = 127;
+    //     t = 127;
+    //     ml = -127;
+    //     piston.set_value(0);
 
     } else {
         // Stop everything

@@ -13,13 +13,13 @@ void flywheel_reset(){
     flywheel.tare_position_all();
 }
 
-void flywheel_control(){
-    if (master.get_digital_new_press(DIGITAL_Y)){
-        toggle = !toggle;
-    }
-    if(toggle){
-        flywheel.move(127);
-    }else{
-        flywheel.move(0);
-    }
-}
+// void flywheel_control(){
+//     if (master.get_digital_new_press(DIGITAL_Y)){
+//         toggle = !toggle;
+//     }
+//     if(toggle){
+//         flywheel.move(127);
+//     }else{
+//         flywheel.move(0);
+//     }
+// }

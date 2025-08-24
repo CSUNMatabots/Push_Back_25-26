@@ -1,6 +1,7 @@
 #include "main.h"
 #include "subsystems.hpp"
 #include "color_detection.hpp"
+#include "controls.h"
 // #include "pros/colors.hpp"
 
 #define ALLIANCE_COLOR ColorTarget::RED
