@@ -1,6 +1,7 @@
 #include "main.h"
 #include "lemlib/api.hpp" // IWYU pragma: keep
 #include "config.h"
+#include "controls.h"
 #include <iterator>
 #include "subsystems.hpp"
 
@@ -101,8 +102,8 @@ lemlib::Chassis chassis(drivetrain, linearController, angularController, sensors
  */
 
 int selected_auton = 0;
-const char* AUTON_NAMES[] = {"Left", "Right", "Skills"};
-void (*AUTON_FUNCS[])()   = {auton_left,    auton_right,    auton_skills};
+const char* AUTON_NAMES[] = {"Test", "Left", "Right", "Skills"};
+void (*AUTON_FUNCS[])()   = {test_trackingwheels, auton_left,    auton_right,    auton_skills};
 const int NUM_AUTONS  = sizeof(AUTON_FUNCS)/sizeof(AUTON_FUNCS[0]);
 
 void initialize()
@@ -112,9 +113,7 @@ void initialize()
 
   // Auton selector when connected to field control
 
-const auto BTN_PREV    = pros::E_CONTROLLER_DIGITAL_LEFT;
-const auto BTN_NEXT    = pros::E_CONTROLLER_DIGITAL_RIGHT;
-const auto BTN_CONFIRM = pros::E_CONTROLLER_DIGITAL_A;
+
 
   while (true) {
     if (master.get_digital_new_press(BTN_PREV)) { // Navigate to previous auton

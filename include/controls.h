@@ -9,5 +9,8 @@
 #define ScoreMid_Hopper pros::E_CONTROLLER_DIGITAL_L1
 #define switch_auton_button pros::E_CONTROLLER_DIGITAL_A
 
+#define BTN_PREV pros::E_CONTROLLER_DIGITAL_LEFT
+#define BTN_NEXT pros::E_CONTROLLER_DIGITAL_RIGHT
+#define BTN_CONFIRM pros::E_CONTROLLER_DIGITAL_A
 
 #endif 
