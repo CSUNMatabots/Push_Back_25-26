@@ -4,7 +4,7 @@
 #include "controls.h"
 // #include "pros/colors.hpp"
 
-#define ALLIANCE_COLOR ColorTarget::RED
+#define ALLIANCE_COLOR ColorTarget::BLUE
 
 ColorTarget detect_color (int hue) { //helper function 
 
