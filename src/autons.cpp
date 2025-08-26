@@ -8,6 +8,7 @@
 #include "robot/intake.hpp"
 #include "robot/flywheel.hpp"
 
+
 /*
 Notes
     - 
@@ -23,6 +24,26 @@ Notes
 int DRIVE_SPEED = 127; //Default drive speed for the robot
 
 
+
+
+void test_trackingwheels() {
+
+// pros::Imu& get_imu(); 
+
+lemlib::MoveToPointParams speedParams = {.maxSpeed = 100};
+
+chassis.setPose(0, 0, 0);
+
+chassis.moveToPoint(0, 24, 2000);
+chassis.waitUntilDone();
+
+
+pros::lcd::print(0, "X: %f", chassis.getPose().x); // x
+pros::lcd::print(1, "Y: %f", chassis.getPose().y); // y
+pros::lcd::print(2, "Theta: %f", chassis.getPose().theta);
+
+    
+}
 
 
 

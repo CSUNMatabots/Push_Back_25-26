@@ -5,10 +5,12 @@
 #include "pros/motors.hpp"
 #include "lemlib/api.hpp"
 #include "pros/optical.hpp"
+#include "pros/imu.hpp"
 
 
 extern pros::Controller master;
 extern lemlib::Chassis chassis;
+extern pros::Imu imu;
 
 
 // Ports up to date 
@@ -24,8 +26,11 @@ inline pros::Motor matchload(-14);
 inline pros::adi::Pneumatics piston('H', false);
 inline pros::adi::Pneumatics ejector('G', false);
 inline pros::Optical eye (12);
-inline pros::Distance distance_sensor(7);
+inline pros::Distance distance_sensor(20);
 
+inline pros::Imu imu(7);
+inline pros::Rotation horizontalEnc(2);
+inline pros::Rotation verticalEnc(-1);
 
 
 
