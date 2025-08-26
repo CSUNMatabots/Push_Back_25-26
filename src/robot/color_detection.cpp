@@ -48,8 +48,13 @@ void objectDetectionTask() {
     int depth = distance_sensor.get();
 
     ColorTarget detected = detect_color(hue);
+    if (depth > 105){
 
-    if (detected != ColorTarget::NONE && depth < 105) {  //means there is a color detection 
+         pros::lcd::print(0, "No Object Nearby");
+
+    } else { 
+
+        if (detected != ColorTarget::NONE && depth < 105) {  //means there is a color detection 
         
         if (detected == ALLIANCE_COLOR) {
             pros::lcd::print(0, "Alliance Color (%s) detected", color_to_string(ALLIANCE_COLOR));
@@ -62,6 +67,7 @@ void objectDetectionTask() {
             ejector.set_value(0);
 
         }
-    }    
+    }    }
+   
 }
 //change
