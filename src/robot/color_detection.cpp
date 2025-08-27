@@ -6,6 +6,28 @@
 
 #define ALLIANCE_COLOR ColorTarget::RED
 
+const int MAX_STORAGE = 13;
+int storage_count = 0;
+
+void StorageControl(int hue, int MAX_STORAGE)
+{
+    if(storage_count == MAX_STORAGE)
+    {
+        pros::lcd::print(2, "Storage Full");
+    } 
+    else 
+    {
+
+        if (detect_color(hue) != ColorTarget::NONE)
+        {
+            ++storage_count;
+            pros::lcd::print(2, "Storage Count = ", storage_count);
+        }
+    }
+}
+
+
+
 ColorTarget detect_color (int hue) { //helper function 
 
     if (hue >= 0 && hue <= 25) {
@@ -70,4 +92,3 @@ void objectDetectionTask() {
     }    }
    
 }
-//change
