@@ -4,7 +4,7 @@
 #include "controls.h"
 // #include "pros/colors.hpp"
 
-#define ALLIANCE_COLOR ColorTarget::RED
+#define ALLIANCE_COLOR ColorTarget::BLUE
 
 const int MAX_STORAGE = 13;
 int storage_count = 0;
