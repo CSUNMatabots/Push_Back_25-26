@@ -3,6 +3,8 @@
 #include "config.h"
 #include "controls.h"
 #include <iterator>
+#include "liblvgl/llemu.hpp"
+#include "pros/misc.hpp"
 #include "subsystems.hpp"
 
 #include "pros/rotation.hpp"
@@ -34,32 +36,32 @@ pros::Controller master(pros::E_CONTROLLER_MASTER);
 // === 15" BOT CONFIG ===
 pros::MotorGroup leftMotors({-8, -6, -9}, pros::MotorGearset::blue);
 pros::MotorGroup rightMotors({18, 20, 16}, pros::MotorGearset::blue);
-pros::Imu imu(21);
-pros::Rotation horizontalEnc(1);
-pros::Rotation verticalEnc(2);
-lemlib::TrackingWheel horizontalTW(&horizontalEnc, lemlib::Omniwheel::OLD_275, -0.25);
+// pros::Imu imu(7);
+// pros::Rotation horizontalEnc(2);
+// pros::Rotation verticalEnc(-1);
+lemlib::TrackingWheel horizontalTW(&horizontalEnc, lemlib::Omniwheel::OLD_275, -5.514);
 lemlib::TrackingWheel verticalTW(&verticalEnc, lemlib::Omniwheel::OLD_275, 0);
 lemlib::Drivetrain drivetrain(&leftMotors, &rightMotors, 12.5, lemlib::Omniwheel::NEW_4, 480, 5);
 
 lemlib::ControllerSettings linearController(7, // proportional gain (kP)
-                                                0.07, // integral gain (kI)
+                                                0.01, // integral gain (kI)
                                                 20, // derivative gain (kD)
                                                 3, // anti windup
-                                                0.25, // small error range, in inches
-                                                100, // small error range timeout, in milliseconds
-                                                1, // large error range, in inches
+                                                0.15, // small error range, in inches
+                                                150, // small error range timeout, in milliseconds
+                                                0.5, // large error range, in inches
                                                 500, // large error range timeout, in milliseconds
-                                                16 // maximum acceleration (slew)
+                                                10 // maximum acceleration (slew)
 );
-lemlib::ControllerSettings angularController(2.8, // proportional gain (kP)
-                                                0.06, // integral gain (kI)
-                                                18, // derivative gain (kD)
+lemlib::ControllerSettings angularController(2.9, // proportional gain (kP)
+                                                0.01, // integral gain (kI)
+                                                20, // derivative gain (kD)
                                                 3, // anti windup
-                                                0.5, // small error range, in degrees
-                                                100, // small error range timeout, in milliseconds
-                                                1, // large error range, in degrees
+                                                0.25, // small error range, in degrees
+                                                150, // small error range timeout, in milliseconds
+                                                0.5, // large error range, in degrees
                                                 500, // large error range timeout, in milliseconds
-                                                0 // maximum acceleration (slew)
+                                                8 // maximum acceleration (slew)
 );
 
 lemlib::OdomSensors sensors(&verticalTW, nullptr, &horizontalTW, nullptr, &imu);
@@ -106,43 +108,80 @@ const char* AUTON_NAMES[] = {"Test", "Left", "Right", "Skills"};
 void (*AUTON_FUNCS[])()   = {test_trackingwheels, auton_left,    auton_right,    auton_skills};
 const int NUM_AUTONS  = sizeof(AUTON_FUNCS)/sizeof(AUTON_FUNCS[0]);
 
-void initialize()
-{
-	pros::lcd::initialize(); // initialize brain screen
-	chassis.calibrate();	 // calibrate sensors
+bool autonselect = false;
 
-  // Auton selector when connected to field control
-
-
-
+void auton_selector() { 
   while (true) {
-    if (master.get_digital_new_press(BTN_PREV)) { // Navigate to previous auton
-	  // Wrap around if at the beginning
-      selected_auton = (selected_auton - 1 + NUM_AUTONS) % NUM_AUTONS;
-    } else if (master.get_digital_new_press(BTN_NEXT)) { // Navigate to next auton
-	  // Wrap around if at the end
-	  selected_auton = (selected_auton + 1) % NUM_AUTONS;
-	}
-   
+    if (!autonselect) { 
 
-    // Refresh display
-    master.clear_line(2);
-    master.print(2, 0, "Auton: %s", AUTON_NAMES[selected_auton]);
-    pros::lcd::print(0, "Auton: %s", AUTON_NAMES[selected_auton]);
+      //cycle thorugh logic 
+      
+      if (master.get_digital_new_press(BTN_PREV)) { // Navigate to previous auton
+      // Wrap around if at the beginning
+        selected_auton = (selected_auton - 1 + NUM_AUTONS) % NUM_AUTONS;
+      } else if (master.get_digital_new_press(BTN_NEXT)) { // Navigate to next auton
+      // Wrap around if at the end
+      selected_auton = (selected_auton + 1) % NUM_AUTONS;
+      }
 
-        if (master.get_digital_new_press(BTN_CONFIRM)) {
-            master.rumble(".");
-            break;
-        }
-        pros::delay(100);
+      master.clear_line(2); //Refresh Display 
+      // master.print(2, 0, "Auton: %s", AUTON_NAMES[selected_auton]);
+      pros::lcd::print(0, "Auton: %s", AUTON_NAMES[selected_auton]);
+
+      if (master.get_digital_new_press(BTN_CONFIRM)) {
+        autonselect = true;
+        master.rumble(".");
+      }
+
     }
+  
+  pros::delay(100);
 
-  // Set the selected autonomous routine
-  master.clear_line(2);
-  master.print(2, 0, "Selected: %s", AUTON_NAMES[selected_auton]);
+  }
+
+  master.clear_line(2); // Set the selected autonomous routine
+  // master.print(2, 0, "Selected: %s", AUTON_NAMES[selected_auton]); 
   pros::lcd::print(0, "Selected: %s", AUTON_NAMES[selected_auton]);
 
 
+//once auton locked in, press A again to run
+
+bool button_confirmed = false;
+
+  if (autonselect) {
+
+    pros::lcd::clear();
+    
+    while (!button_confirmed) {
+      pros::lcd::print(0, "Selected: %s", AUTON_NAMES[selected_auton]); //flash chosen auton 
+      pros::delay(100);
+      pros::lcd::clear();
+      pros::delay(100);
+
+      if (master.get_digital_new_press(BTN_CONFIRM)) {
+        button_confirmed = true;
+        master.rumble("..");
+
+        AUTON_FUNCS[selected_auton]();
+
+        pros::lcd::print(0, "Locked: %s", AUTON_NAMES[selected_auton]);
+
+      }
+
+    pros::delay(100);
+    
+    }
+
+  }   
+
+}
+
+void initialize() {
+
+	pros::lcd::initialize(); // initialize brain screen
+	chassis.calibrate();	 // calibrate sensors
+
+  
 
 	// the default rate is 50. however, if you need to change the rate, you
 	// can do the following.
@@ -153,7 +192,9 @@ void initialize()
 	// works, refer to the fmtlib docs
 
 	// thread to for brain screen and position logging
-	pros::Task screenTask([&]()
+
+
+  	pros::Task screenTask([&]()
 						  {
         while (true) {
             // print robot location to the brain screen
@@ -166,6 +207,7 @@ void initialize()
             pros::delay(50);
         } });
 }
+
 
 /**
  * Runs while the robot is disabled
@@ -192,36 +234,60 @@ ASSET(example_txt); // '.' replaced with "_" to make c++ happy
  * This is an example autonomous routine which demonstrates a lot of the features LemLib has to offer
  */
 void autonomous() {
-	
+
 AUTON_FUNCS[selected_auton]();
 
 
 }
 
-/**
- * Runs in driver control
- */
+
+
+bool auton_running = false;
+
+void run_selected_auton() {
+    auton_running = true; //Change to auton is in progress
+    master.rumble(".");
+
+    AUTON_FUNCS[selected_auton](); //Run the auton 
+
+    auton_running = false; //Auton over
+    pros::lcd::clear();
+    pros::lcd::print(0, "Auton done: %s", AUTON_NAMES[selected_auton]);
+
+}
+
+
+//Runs in driver control
 void opcontrol()
 {
 	// controller
 	// loop to continuously update motors
-	while (true)
-	{
-		// get joystick positions
+	while (true) {
+  
+  if (!auton_running && BTN_CONFIRM_RUN) {
+          run_selected_auton();
+      }
+
+
+  if (!auton_running) {
+
 		int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
 		int rightY = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
 		// move the chassis with curvature drive
 		chassis.tank(leftY, rightY);
-		// delay to save resources
-  
 
 //Robot Systems
+		// flywheel_control();
 		intake_control();
     
 		matchload_control();
+    // extender_control();
 
-    objectDetectionTask();
+      objectDetectionTask();
 
-		pros::delay(10);
-	}
+    }
+
+    pros::delay(10);
+
+  }
 }
