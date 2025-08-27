@@ -216,11 +216,9 @@ void opcontrol()
   
 
 //Robot Systems
-		// flywheel_control();
 		intake_control();
     
 		matchload_control();
-    // extender_control();
 
     objectDetectionTask();
 
