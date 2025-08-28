@@ -9,23 +9,6 @@
 const int MAX_STORAGE = 13;
 int storage_count = 0;
 
-void StorageControl(int hue, int MAX_STORAGE)
-{
-    if(storage_count == MAX_STORAGE)
-    {
-        pros::lcd::print(2, "Storage Full");
-    } 
-    else 
-    {
-
-        if (detect_color(hue) != ColorTarget::NONE)
-        {
-            ++storage_count;
-            pros::lcd::print(2, "Storage Count = ", storage_count);
-        }
-    }
-}
-
 
 
 ColorTarget detect_color (int hue) { //helper function 
@@ -40,6 +23,25 @@ ColorTarget detect_color (int hue) { //helper function
 
     else {
         return ColorTarget::NONE;
+    }
+}
+
+void StorageControl(int hue, int MAX_STORAGE)
+{
+    if(storage_count == MAX_STORAGE)
+    {
+        pros::lcd::clear_line(2);
+        pros::lcd::print(2, "Storage Full");
+    } 
+    else 
+    {
+
+        if (detect_color(hue) != ColorTarget::NONE)
+        {
+            ++storage_count;
+            pros::lcd::clear_line(2);
+            pros::lcd::print(2, "Storage Count = ", storage_count);
+        }
     }
 }
 
