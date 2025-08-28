@@ -6,6 +6,28 @@
 
 #define ALLIANCE_COLOR ColorTarget::BLUE
 
+const int MAX_STORAGE = 13;
+int storage_count = 0;
+
+void StorageControl(int hue, int MAX_STORAGE)
+{
+    if(storage_count == MAX_STORAGE)
+    {
+        pros::lcd::print(2, "Storage Full");
+    } 
+    else 
+    {
+
+        if (detect_color(hue) != ColorTarget::NONE)
+        {
+            ++storage_count;
+            pros::lcd::print(2, "Storage Count = ", storage_count);
+        }
+    }
+}
+
+
+
 ColorTarget detect_color (int hue) { //helper function 
 
     if (hue >= 0 && hue <= 25) {
@@ -48,8 +70,13 @@ void objectDetectionTask() {
     int depth = distance_sensor.get();
 
     ColorTarget detected = detect_color(hue);
+    if (depth > 105){
 
-    if (detected != ColorTarget::NONE && depth < 105) {  //means there is a color detection 
+         pros::lcd::print(0, "No Object Nearby");
+
+    } else { 
+
+        if (detected != ColorTarget::NONE && depth < 105) {  //means there is a color detection 
         
         if (detected == ALLIANCE_COLOR) {
             pros::lcd::print(0, "Alliance Color (%s) detected", color_to_string(ALLIANCE_COLOR));
@@ -62,6 +89,9 @@ void objectDetectionTask() {
             ejector.set_value(0);
 
         }
-    }    
+    }    }
+   
 }
-//change
+
+
+
