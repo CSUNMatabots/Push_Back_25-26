@@ -37,6 +37,10 @@ chassis.setPose(0, 0, 0);
 chassis.moveToPoint(0, 24, 2000);
 chassis.waitUntilDone();
 
+chassis.moveToPoint(0, 0, 2000, {.forwards = false});
+chassis.waitUntilDone();
+
+
 
 pros::lcd::print(0, "X: %f", chassis.getPose().x); // x
 pros::lcd::print(1, "Y: %f", chassis.getPose().y); // y
