@@ -67,7 +67,8 @@ ColorTarget getOpponentColor(ColorTarget Alliance) {
 
 
 void objectDetectionTask() {
-
+    
+    eye.set_led_pwm(100);
     int hue = eye.get_hue();
     int depth = distance_sensor.get();
 
