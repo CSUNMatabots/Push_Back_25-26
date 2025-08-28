@@ -1,3 +1,4 @@
+#include "liblvgl/llemu.hpp"
 #include "main.h"
 #include "subsystems.hpp"
 #include "color_detection.hpp"
@@ -17,7 +18,7 @@ ColorTarget detect_color (int hue) { //helper function
         return ColorTarget::RED;
     }
 
-    else if (hue >= 150 && hue <= 230) {
+    else if (hue >= 125 && hue <= 230) {
         return ColorTarget::BLUE;
     }
 
@@ -48,7 +49,9 @@ void StorageControl(int hue, int MAX_STORAGE)
 const char* color_to_string(ColorTarget color) { //changes enum integers to string so Alliance color can be reported
     switch (color) {
         case ColorTarget::RED: return "RED";
+        break;
         case ColorTarget::BLUE: return "BLUE";
+        break;
         default: return "NONE"; //default option  
 
     }
@@ -61,40 +64,70 @@ ColorTarget getOpponentColor(ColorTarget Alliance) {
     else if  (Alliance == ColorTarget::BLUE) {
         return ColorTarget::RED;
     }
+    else {
         return ColorTarget::NONE; //default
 
+    }
+
 }
 
 
-void objectDetectionTask() {
-    
+void objectDetectionTask() 
+{
+
     eye.set_led_pwm(100);
     int hue = eye.get_hue();
-    int depth = distance_sensor.get();
+    int depth = eye.get_proximity();
 
     ColorTarget detected = detect_color(hue);
-    if (depth > 105){
-
-         pros::lcd::print(0, "No Object Nearby");
-
-    } else { 
-
-        if (detected != ColorTarget::NONE && depth < 105) {  //means there is a color detection 
+    if (depth < 200) // rel far (higher value = closer) //made detection closer so less false readings(blue being red)
+    { 
         
-        if (detected == ALLIANCE_COLOR) {
-            pros::lcd::print(0, "Alliance Color (%s) detected", color_to_string(ALLIANCE_COLOR));
-            pros::lcd::print(1, "%f", distance_sensor.get()); // Records dist value, formatted as a double 
-        }   
-        else {
-            pros::lcd::print(0, "Opponent Color (%s) detected", getOpponentColor(ALLIANCE_COLOR));
-            ejector.set_value(1);   //ejector piston w/ fast rapid motion 
-            pros::delay(5);
-            ejector.set_value(0);
+        pros::lcd::print(2, "No Object Nearby");
 
-        }
-    }    }
-   
+    } 
+    else 
+    { 
+    
+        if (detected != ColorTarget::NONE) //means there is a color detection
+        {   
+            if (detected == ALLIANCE_COLOR) 
+            {
+                pros::lcd::clear_line(2);
+                pros::lcd::print(2, "Alliance Color (%s) detected", color_to_string(ALLIANCE_COLOR));
+                /*
+                                this is breaking the program for some reason
+                pros::lcd::clear_line(3);   
+                pros::lcd::print(3, "%f", eye.get_proximity()); // Records dist value, formatted as a double */
+
+                /*while (1) 
+                {   pros::lcd::clear_line(3);
+                    pros::lcd::print(3, "%f", eye.get_proximity());
+                    pros::delay(20);
+                }*/
+                
+            }
+            else
+            {  
+                pros::lcd::clear_line(2);
+                pros::lcd::print(2, "Opponent Color (%s) detected", color_to_string(getOpponentColor(ALLIANCE_COLOR)));//problem here
+                
+                /*while (1) 
+                {   
+                    pros::lcd::clear_line(3);
+                    pros::lcd::print(3, "%f", eye.get_proximity());
+                    pros::delay(20);
+                }*/
+
+                // ejector.set_value(1);   //ejector piston w/ fast rapid motion 
+                // pros::delay(5);
+                // ejector.set_value(0);
+            
+
+            }
+
+        }            
+    }   
+
 }
-
-
-
+   

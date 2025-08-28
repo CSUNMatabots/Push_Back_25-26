@@ -6,7 +6,7 @@
 #include "subsystems.hpp"
 
 #include "robot/intake.hpp"
-#include "robot/flywheel.hpp"
+
 
 
 /*
@@ -107,11 +107,11 @@ t_intake_speed(-127);
     // shooter/intakes like your original
     t_intake_speed(-127);
     b_intake_speed(-127);
-    flywheel_speed(127);
+   
     pros::delay(3000);
     t_intake_speed(0);
     b_intake_speed(0);
-    flywheel_speed(0);
+   
 }
 
 

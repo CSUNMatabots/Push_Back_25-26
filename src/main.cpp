@@ -10,7 +10,7 @@
 #include "pros/rotation.hpp"
 
 #include "autons.hpp"
-#include "robot/flywheel.hpp"
+
 #include "robot/intake.hpp"
 #include "robot/color_detection.hpp"
 #include "robot/matchload.hpp"
@@ -143,7 +143,7 @@ void auton_selector() {
   
   // master.clear_line(2); // Set the selected autonomous routine
   // master.print(2, 0, "Selected: %s", AUTON_NAMES[selected_auton]); 
-  pros::lcd::print(0, "Selected: %s", AUTON_NAMES[selected_auton]);
+  //pros::lcd::print(0, "Selected: %s", AUTON_NAMES[selected_auton]);
 
 
 //once auton locked in, press A again to run
@@ -182,7 +182,7 @@ void initialize() {
 
 	pros::lcd::initialize(); // initialize brain screen
 	chassis.calibrate();	 // calibrate sensors
-
+  eye.set_led_pwm(100);
   auton_selector();
 
 	// the default rate is 50. however, if you need to change the rate, you
