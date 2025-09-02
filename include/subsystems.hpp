@@ -14,12 +14,10 @@ extern pros::Imu imu;
 
 
 // Ports up to date 
-// inline pros::Motor bottom_intake(15);
-inline pros::Motor middle_intake(5);
+inline pros::Motor middle_int(15);
 inline pros::Motor top_intake(-13);
 inline pros::Motor hopper(10);
 inline pros::Motor agitator(19);
-inline pros::MotorGroup flywheel({12,-15});
 inline pros::Motor matchload(-14);
 
 //Sensors and Pneumatics

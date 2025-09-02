@@ -3,69 +3,60 @@
 #include "subsystems.hpp"
 #include "controls.h"
 
-void intake_control(){ // Uses back buttons
-    // int b = 0;
+
+
+void intake_control() { 
+
     int m = 0;
     int t = 0;
     int ml = 0;
     int hop = 0;
     int ag = 0;
-    int fly = 0; 
 
-    if (master.get_digital(DIGITAL_L1) && master.get_digital(DIGITAL_L2) ) { // Check combo case first
+    if (master.get_digital(DIGITAL_L1) && master.get_digital(DIGITAL_L2)) {
         // Both Left Back Buttons -- Take out hopper, score out-low 
         hop = 127;
         m   = 127;
         ag  = 127;
-        ml = -127;
+        ml  = -127;
         piston.set_value(0);
-
-    } else if (master.get_digital(ScoreTop_Hopper)) {
-        // Left Back Button -- Take out hopper, score out-high
+        // (ejector unchanged here, as in your original)
+    }
+    if (master.get_digital(ScoreTop_Hopper)) {
+        // Top out of hopper ( R2 mapping)
         hop = 127;
         m   = -127;
         t   = -127;
         ag  = 127;
-        fly = 127;
         piston.set_value(0);
         ejector.set_value(1);
-    
+
     } else if (master.get_digital(ScoreMid_Hopper)) {
-        // Left Front Button -- Take out hopper, score out-mid
+        // Mid out of hopper ( R1 mapping)
         hop = 127;
         m   = -127;
         ag  = 127;
         piston.set_value(0); 
 
     } else if (master.get_digital(Into_Hopper_Button)) {
-        // Right Front Button -- Into Hopper
-        m = -127;
-        t = -127;
-        ml = 127;
-        fly = 127; 
+        // Into Hopper ( L1 mapping)
+        m   = -127;
+        t   = -127;
+        ml  = 127;
         piston.set_value(0);
         ejector.set_value(0);
 
-    // } else if (master.get_digital(DIGITAL_R1)) {
-    //     // Right Back Button -- Score Low
-    //     m = 127;
-    //     t = 127;
-    //     ml = -127;
-    //     piston.set_value(0);
-
     } else {
         // Stop everything
-        m = t = ml = hop = ag = fly = 0;
+        m = t = ml = hop = ag = 0;
     }
 
-    middle_intake.move(m);
+    middle_int.move(m);
     top_intake.move(t);
     matchload.move(ml);
     hopper.move(hop);
     agitator.move(ag);
-    flywheel.move(fly);
 }
-
 
 // ============ Auton Code =============
 
@@ -97,21 +88,21 @@ double end_angle;
 
 // =======Middle Intake Code========
 void m_intake_speed(int speed){
-    middle_intake.move(speed);
+    middle_int.move(speed);
 }
 
 void m_intake_set_pos(double pos, int speed){
-    middle_intake.move_absolute(pos, speed);
+    middle_int.move(speed);
 }
 
 void m_intake_delay(int speed, int delay){
-    middle_intake.move(speed);
+    middle_int.move(speed);
     pros::delay(delay);
-    middle_intake.move(0);
+    middle_int.move(speed);
 }
 
 void m_intake_reset(){
-    middle_intake.tare_position();
+    middle_int.tare_position();
 }
 
 // =======Top Intake Code========

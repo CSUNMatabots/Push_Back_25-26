@@ -34,12 +34,8 @@ lemlib::MoveToPointParams speedParams = {.maxSpeed = 100};
 
 chassis.setPose(0, 0, 0);
 
-chassis.moveToPoint(0, 24, 2000);
+chassis.moveToPoint(0, 24, 3000);
 chassis.waitUntilDone();
-
-chassis.moveToPoint(0, 0, 2000, {.forwards = false});
-chassis.waitUntilDone();
-
 
 
 pros::lcd::print(0, "X: %f", chassis.getPose().x); // x

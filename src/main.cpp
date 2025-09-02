@@ -39,29 +39,29 @@ pros::MotorGroup rightMotors({18, 20, 16}, pros::MotorGearset::blue);
 // pros::Imu imu(7);
 // pros::Rotation horizontalEnc(2);
 // pros::Rotation verticalEnc(-1);
-lemlib::TrackingWheel horizontalTW(&horizontalEnc, lemlib::Omniwheel::OLD_275, -5.514);
-lemlib::TrackingWheel verticalTW(&verticalEnc, lemlib::Omniwheel::OLD_275, 0);
+lemlib::TrackingWheel horizontalTW(&horizontalEnc, 2.77, -5.514);
+lemlib::TrackingWheel verticalTW(&verticalEnc, 2.77, 0);
 lemlib::Drivetrain drivetrain(&leftMotors, &rightMotors, 12.5, lemlib::Omniwheel::NEW_4, 480, 5);
 
-lemlib::ControllerSettings linearController(7, // proportional gain (kP)
-                                            0.01, // integral gain (kI)
-                                            3, // derivative gain (kD)
+lemlib::ControllerSettings linearController(16, // proportional gain (kP)
+                                            0.1, // integral gain (kI)
+                                            150, // derivative gain (kD)
                                             3, // anti windup
-                                            1, // small error range, in inches
+                                            0.25, // small error range, in inches
                                             100, // small error range timeout, in milliseconds
-                                            3, // large error range, in inches
+                                            1, // large error range, in inches
                                             500, // large error range timeout, in milliseconds
-                                            20 // maximum acceleration (slew)
+                                            16 // maximum acceleration (slew)
 );
 
 // angular motion controller
-lemlib::ControllerSettings angularController(2, // proportional gain (kP)
-                                             0.01, // integral gain (kI)
-                                             10, // derivative gain (kD)
+lemlib::ControllerSettings angularController(2.8, // proportional gain (kP)
+                                             0.06, // integral gain (kI)
+                                             2.8, // derivative gain (kD)
                                              3, // anti windup
-                                             1, // small error range, in degrees
+                                             0.25, // small error range, in degrees
                                              100, // small error range timeout, in milliseconds
-                                             3, // large error range, in degrees
+                                             0.75, // large error range, in degrees
                                              500, // large error range timeout, in milliseconds
                                              0 // maximum acceleration (slew)
 );
@@ -200,9 +200,9 @@ void initialize() {
 						  {
         while (true) {
             // print robot location to the brain screen
-            pros::lcd::print(2, "X: %f", chassis.getPose().x); // x
-            pros::lcd::print(3, "Y: %f", chassis.getPose().y); // y
-            pros::lcd::print(4, "Theta: %f", chassis.getPose().theta); // heading
+            pros::lcd::print(1, "X: %f", chassis.getPose().x); // x
+            pros::lcd::print(2, "Y: %f", chassis.getPose().y); // y
+            pros::lcd::print(3, "Theta: %f", chassis.getPose().theta); // heading
             // log position telemetry
             lemlib::telemetrySink()->info("Chassis pose: {}", chassis.getPose());
             // delay to save resources
@@ -280,13 +280,9 @@ void opcontrol()
 		chassis.tank(leftY, rightY);
 
 //Robot Systems
-		// flywheel_control();
 		intake_control();
-    
 		matchload_control();
-    // extender_control();
-
-      objectDetectionTask();
+    objectDetectionTask();
 
     }
 
