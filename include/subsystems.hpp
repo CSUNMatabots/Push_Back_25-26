@@ -30,5 +30,4 @@ inline pros::Imu imu(7);
 inline pros::Rotation horizontalEnc(2);
 inline pros::Rotation verticalEnc(-1);
 
-
-
+inline pros::Rotation rotsensor(3);
