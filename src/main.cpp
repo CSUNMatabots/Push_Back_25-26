@@ -34,11 +34,9 @@ To Do...
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
 // === 15" BOT CONFIG ===
-pros::MotorGroup leftMotors({-8, -6, -9}, pros::MotorGearset::blue);
-pros::MotorGroup rightMotors({18, 20, 16}, pros::MotorGearset::blue);
-// pros::Imu imu(7);
-// pros::Rotation horizontalEnc(2);
-// pros::Rotation verticalEnc(-1);
+pros::MotorGroup leftMotors({-8, -9, -10}, pros::MotorGearset::blue);
+pros::MotorGroup rightMotors({18, 19, 20}, pros::MotorGearset::blue);
+
 lemlib::TrackingWheel horizontalTW(&horizontalEnc, 2.77, -5.514);
 lemlib::TrackingWheel verticalTW(&verticalEnc, 2.77, 0);
 lemlib::Drivetrain drivetrain(&leftMotors, &rightMotors, 12.5, lemlib::Omniwheel::NEW_4, 480, 5);
@@ -281,7 +279,7 @@ void opcontrol()
 
 //Robot Systems
 		intake_control();
-		matchload_control();
+		// matchload_control();
     objectDetectionTask();
 
     }

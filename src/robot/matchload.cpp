@@ -6,18 +6,17 @@
 
 bool pistonExtended = false; 
 
-void matchload_control() { 
-    if (master.get_digital_new_press(Matchload_Button)) {
-        pistonExtended = !pistonExtended;  // Toggle state
+// void matchload_control() { 
+//     if (master.get_digital_new_press()) {
+//         pistonExtended = !pistonExtended;  // Toggle state
         
-        if (pistonExtended) {
-            piston.set_value(1);  // extend piston
-            matchload.move(-127); 
-        } else {
-            piston.set_value(0);  // retract piston
-        }
-    }
-}
+//         if (pistonExtended) {
+//             piston.set_value(1);  // extend piston
+//         } else {
+//             piston.set_value(0);  // retract piston
+//         }
+//     }
+// }
 
 // bool Extended = false;
 
