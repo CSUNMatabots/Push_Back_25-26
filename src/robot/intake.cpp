@@ -3,32 +3,32 @@
 #include "subsystems.hpp"
 #include "controls.h"
 
-
+bool ScoreLow_Hopper() {
+    return master.get_digital(pros::E_CONTROLLER_DIGITAL_L1) &&
+           master.get_digital(pros::E_CONTROLLER_DIGITAL_L2);
+}
 
 void intake_control() { 
 
     int m = 0;
     int t = 0;
-    int ml = 0;
     int hop = 0;
     int ag = 0;
-
-    if (master.get_digital(DIGITAL_L1) && master.get_digital(DIGITAL_L2)) {
+    
+    if (ScoreLow_Hopper()) {
         // Both Left Back Buttons -- Take out hopper, score out-low 
         hop = 127;
         m   = 127;
         ag  = 127;
-        ml  = -127;
         piston.set_value(0);
-        // (ejector unchanged here, as in your original)
+        
     }
-    if (master.get_digital(ScoreTop_Hopper)) {
+    else if (master.get_digital(ScoreTop_Hopper)) {
         // Top out of hopper ( R2 mapping)
         hop = 127;
         m   = -127;
         t   = -127;
         ag  = 127;
-        piston.set_value(0);
         ejector.set_value(1);
 
     } else if (master.get_digital(ScoreMid_Hopper)) {
@@ -36,24 +36,22 @@ void intake_control() {
         hop = 127;
         m   = -127;
         ag  = 127;
-        piston.set_value(0); 
+        piston.set_value(0);
 
     } else if (master.get_digital(Into_Hopper_Button)) {
         // Into Hopper ( L1 mapping)
         m   = -127;
         t   = -127;
-        ml  = 127;
         piston.set_value(0);
         ejector.set_value(0);
 
     } else {
         // Stop everything
-        m = t = ml = hop = ag = 0;
+        m = t = hop = ag = 0;
     }
 
     middle_int.move(m);
     top_intake.move(t);
-    matchload.move(ml);
     hopper.move(hop);
     agitator.move(ag);
 }

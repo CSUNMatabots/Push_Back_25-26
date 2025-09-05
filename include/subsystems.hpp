@@ -14,20 +14,19 @@ extern pros::Imu imu;
 
 
 // Ports up to date 
-inline pros::Motor middle_int(15);
-inline pros::Motor top_intake(-13);
-inline pros::Motor hopper(10);
-inline pros::Motor agitator(19);
-inline pros::Motor matchload(-14);
+inline pros::Motor middle_int(12);
+inline pros::Motor top_intake(-11);
+inline pros::Motor hopper(13);
+inline pros::Motor agitator(14);
 
 //Sensors and Pneumatics
 inline pros::adi::Pneumatics piston('H', false);
 inline pros::adi::Pneumatics ejector('G', false);
 inline pros::Optical eye (12);
-inline pros::Distance distance_sensor(20);
+// inline pros::Distance distance_sensor(20);
 
-inline pros::Imu imu(7);
+inline pros::Imu imu(3);
 inline pros::Rotation horizontalEnc(2);
 inline pros::Rotation verticalEnc(-1);
 
-inline pros::Rotation rotsensor(3);
+
