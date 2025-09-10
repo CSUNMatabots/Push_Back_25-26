@@ -99,6 +99,7 @@ clearEncoders();
 double dx_trans = dx - dTheta * TW_offset_x;
 double dy_trans = dy - (-dTheta * TW_offset_y); // dy_trans = dy since TW_offset_y = 0 in this case
 
+<<<<<<< HEAD
 double theta_mid = reduceAngle(theta + (dTheta/2));
 
 //Rotate to field coordinates not robot coor
@@ -115,6 +116,9 @@ theta  = reduceAngle(theta + dTheta); // update heading (wrap to [-π, π])
 }
 
 #pragma region Motion_Control 
+=======
+
+>>>>>>> b100c96ee8c731e830c9bb30f9d6b674b77f1563
 
 
 
