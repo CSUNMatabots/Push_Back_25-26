@@ -1,19 +1,14 @@
 #include "main.h"
 #include "lemlib/api.hpp" // IWYU pragma: keep
-#include "config.h"
 #include "controls.h"
-#include <iterator>
 #include "liblvgl/llemu.hpp"
 #include "pros/misc.hpp"
 #include "subsystems.hpp"
-
-#include "pros/rotation.hpp"
-
 #include "autons.hpp"
 
 #include "robot/intake.hpp"
 #include "robot/color_detection.hpp"
-#include "robot/matchload.hpp"
+#include "odometry.hpp"
 
 /*
 To Do...
@@ -235,8 +230,8 @@ ASSET(example_txt); // '.' replaced with "_" to make c++ happy
  */
 void autonomous() {
 
-// AUTON_FUNCS[selected_auton]();
-test_trackingwheels();
+driveTo(24);
+// test_trackingwheels();
 
 
 }
@@ -274,12 +269,12 @@ void opcontrol()
 
 		int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
 		int rightY = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
+    int rightX = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 		// move the chassis with curvature drive
 		chassis.tank(leftY, rightY);
 
 //Robot Systems
 		intake_control();
-		// matchload_control();
     objectDetectionTask();
 
     }

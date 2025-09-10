@@ -10,7 +10,6 @@
 #include "subsystems.hpp"
 #include "odometry.hpp"
 #include <cmath>
-#include <cstdint>
 
 double TW_Dia = 2.77; //inches
 
@@ -23,6 +22,16 @@ double TW_offset_x = -5.15; //correct value
 // Heading fusion weight (0..1). Closer to 1 → trust IMU more.
 double wIMU = 0.8;
 
+/* --------------------------------
+Constants
+*/ 
+float MoE_Drive = 0.1;
+
+float MoE_Turn = 0.5;
+
+float drive_kP = 10;
+
+float drive_kD = 0;
 
 // ========================== Helper Functions ==========================
 void clearEncoders() {
@@ -34,7 +43,7 @@ void clearEncoders() {
 //Angle wrapping to find the shortest turn path 
 int reduceAngle(int angle_deg) {
 
-    while(angle_deg <= -180 && angle_deg > 180) {
+    while(angle_deg <= -180 || angle_deg > 180) {
 
         if (angle_deg < -180) { angle_deg += 360; }
         if (angle_deg > 180) { angle_deg -= 360; } 
@@ -42,35 +51,43 @@ int reduceAngle(int angle_deg) {
  return angle_deg;
 }   
 
-void Odom::initialize(double x_0 = 0, double y_0 = 0, double theta_0 = 0) {
+void Odom_initialize(double x_0, double y_0, double theta_0) {
      x = x_0; y = y_0; theta = reduceAngle(theta_0);
 
     clearEncoders();
 
-    prev_y = verticalEnc.get_position();   // baseline in revolutions
-    prev_x = horizontalEnc.get_position();
+    prev_y = verticalEnc.get_position() / 36000;   // baseline in revolutions
+    prev_x = horizontalEnc.get_position() / 36000;
     prev_heading_deg = imu.get_heading();
 
 }
 
-void setDriveVelocity(float LSpeed, float RSpeed) {
+void setDriveVelocity(double LSpeed, double RSpeed) {
+leftMotors.move(LSpeed);
+rightMotors.move(RSpeed);
 
+}
+
+void stopDrive() {
+leftMotors.move(0);
+rightMotors.move(0);
 }
 
 
 // =============================================================
 int update_positon() {
 
-clearEncoders();
-
 //Read encoder values
-    double rot_vertical = verticalEnc.get_position(); 
-    double rot_horizontal = horizontalEnc.get_position();
+    double v_enc = verticalEnc.get_position(); 
+    double h_enc = horizontalEnc.get_position();
     double imu_deg = imu.get_heading(); 
+
+    double v_rev = v_enc / 36000;
+    double h_rev = h_enc / 36000;
         
 //Convert rotations to linear distance
-    float dist_y = rot_vertical * M_PI * TW_Dia;
-    float dist_x = rot_horizontal * M_PI * TW_Dia;
+    float dist_y = v_rev * M_PI * TW_Dia;
+    float dist_x = h_rev * M_PI * TW_Dia;
 
 //Change in pos for x and y (deltas)
     double dy = dist_y - (prev_y * M_PI * TW_Dia);
@@ -99,7 +116,6 @@ clearEncoders();
 double dx_trans = dx - dTheta * TW_offset_x;
 double dy_trans = dy - (-dTheta * TW_offset_y); // dy_trans = dy since TW_offset_y = 0 in this case
 
-<<<<<<< HEAD
 double theta_mid = reduceAngle(theta + (dTheta/2));
 
 //Rotate to field coordinates not robot coor
@@ -112,16 +128,48 @@ x  += dx_f;                 // update field X position
 y  += dy_f;                 // update field Y position
 theta  = reduceAngle(theta + dTheta); // update heading (wrap to [-π, π])
 
+return y;
+return x;
+return theta; 
 
 }
 
-#pragma region Motion_Control 
-=======
+float getXPos(){ return x; }
+float getYPos(){ return y; }
+float getTheta(){ return theta; }
 
->>>>>>> b100c96ee8c731e830c9bb30f9d6b674b77f1563
+// #pragma region Motion_Control 
 
 
+void driveTo (double target)
+{
+    Odom_initialize(0, 0, 0);
 
+    float driveError = 1 - (getYPos() / target); //error = 1 - (current position / target position)
+    float driveDirec = std::fabs(target) / target; //direction = |target| / target (gives 1 or -1)
+
+    float deltaDriveError = 0;
+    float prevDriveError = driveError;
+    
+    while (driveError > MoE_Drive ) {
+
+        update_positon(); 
+
+        driveError = 1 - (getYPos() / target);
+        deltaDriveError = driveError - prevDriveError;
+        prevDriveError = driveError;
+
+        float driveSpeed = (driveError * drive_kP) + (deltaDriveError * drive_kD);
+
+        setDriveVelocity(driveDirec * driveSpeed, driveDirec * driveSpeed);
+    
+    pros::delay(5);
+    
+    }
+    
+stopDrive();
+
+}
 
 
 
@@ -169,7 +217,7 @@ targetX = 10, 20, 10
 
 
 //functions 
-void Odom::setPosition(double currentPosX, double currentPosY, double currentPosTheta) 
+/*void Odom::setPosition(double currentPosX, double currentPosY, double currentPosTheta) 
 {
     currentPosX = 0;
     currentPosY = 0;
@@ -192,7 +240,7 @@ void calculateDistanceToTarget()
 
 void driveTo()
 {
-    /*
+    
     while(currentPosX != targetX && currentPosY != targetY) //add theta later  
     {
         I think theta should come first be evaluated first, then x and y
@@ -227,5 +275,6 @@ void driveTo()
        
     }
     
-    */
+    
 }
+*/
