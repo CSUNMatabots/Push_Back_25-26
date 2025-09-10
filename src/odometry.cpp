@@ -7,18 +7,24 @@
 /*----------------------------------------------------------------------------*/
 
 #include "main.h"
-// #include "include/chassis.hpp"
 #include "subsystems.hpp"
 #include "odometry.hpp"
-#include "math.h"
+#include <cmath>
+#include <cstdint>
 
 double TW_Dia = 2.77; //inches
 
+double x = 0.0, y = 0.0, theta = 0.0;
+int prev_y = 0, prev_x = 0, prev_heading_deg = 0;
 
-void Odom::setPosition(double x, double y, double theta) {
+double TW_offset_y = 0;
+double TW_offset_x = -5.15; //correct value 
 
-}
+// Heading fusion weight (0..1). Closer to 1 → trust IMU more.
+double wIMU = 0.8;
 
+
+// ========================== Helper Functions ==========================
 void clearEncoders() {
   verticalEnc.reset();
   horizontalEnc.reset();
@@ -36,38 +42,75 @@ int reduceAngle(int angle_deg) {
  return angle_deg;
 }   
 
-void setDriveVelocity(float LSpeed, float RSpeed) {
+void Odom::initialize(double x_0 = 0, double y_0 = 0, double theta_0 = 0) {
+     x = x_0; y = y_0; theta = reduceAngle(theta_0);
 
+    clearEncoders();
 
+    prev_y = verticalEnc.get_position();   // baseline in revolutions
+    prev_x = horizontalEnc.get_position();
+    prev_heading_deg = imu.get_heading();
 
 }
 
-int rot_vertical = 0;
-int rot_horizontal = 0;
+void setDriveVelocity(float LSpeed, float RSpeed) {
+
+}
 
 
+// =============================================================
 int update_positon() {
 
 clearEncoders();
-int heading = imu.get_heading();
 
-
-    rot_vertical = verticalEnc.get_position();
-    rot_horizontal = horizontalEnc.get_position();
+//Read encoder values
+    double rot_vertical = verticalEnc.get_position(); 
+    double rot_horizontal = horizontalEnc.get_position();
+    double imu_deg = imu.get_heading(); 
         
+//Convert rotations to linear distance
+    float dist_y = rot_vertical * M_PI * TW_Dia;
+    float dist_x = rot_horizontal * M_PI * TW_Dia;
 
-    float dist_V = rot_vertical * M_PI * TW_Dia;
-    float dist_H = rot_vertical * M_PI * TW_Dia;
+//Change in pos for x and y (deltas)
+    double dy = dist_y - (prev_y * M_PI * TW_Dia);
+        dist_y = prev_y;
 
-    int new_heading = imu.get_heading();
+    double dx = dist_x - (prev_x* M_PI * TW_Dia);
+        dist_x = prev_x;
 
-int dheading = new_heading - heading;
 
-    if (dheading) {
+//Change in pos for theta (deltas), imu and horizontal TW
+    double dtheta_wheel = 0.0;
+        if (std::fabs(TW_offset_x) > 0) { //make sure that horiz tracking wheel offset not 0
+            dtheta_wheel = dx / TW_offset_x;   // update horizontal wheel angle change, dtheta = arc length / TW wheel offset (radius)
+        }
 
-    int halfAngle = dHeading / 2
+    double dtheta_imu = reduceAngle(imu_deg - prev_heading_deg);
+        prev_heading_deg = reduceAngle(prev_heading_deg + dtheta_imu); //update imu heading by adding prev imu deg to delta to get new value 
 
-}
+//Combine dtheta values from imu and horizontal TW  
+    double dTheta = wIMU * dtheta_imu + (1.0 - wIMU) * dtheta_wheel; //sclaes the theta (wheel & imu) contribution
+    
+/*Subtract out rotational component 
+  dxmeas​=dxtrans​+dθ⋅TW_offset_x
+*/
+
+double dx_trans = dx - dTheta * TW_offset_x;
+double dy_trans = dy - (-dTheta * TW_offset_y); // dy_trans = dy since TW_offset_y = 0 in this case
+
+double theta_mid = reduceAngle(theta + (dTheta/2));
+
+//Rotate to field coordinates not robot coor
+double dx_f = cos(theta_mid) * dx_trans - sin(theta_mid) * dy_trans;
+double dy_f = sin(theta_mid) * dx_trans + cos(theta_mid) * dy_trans;
+
+
+//update position
+x  += dx_f;                 // update field X position
+y  += dy_f;                 // update field Y position
+theta  = reduceAngle(theta + dTheta); // update heading (wrap to [-π, π])
+
 
 }
 
