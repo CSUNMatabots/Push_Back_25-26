@@ -14,6 +14,7 @@ void intake_control() {
     int t = 0;
     int hop = 0;
     int ag = 0;
+    int t_hop = 0;
     
     if (ScoreLow_Hopper()) {
         // Both Left Back Buttons -- Take out hopper, score out-low 
@@ -26,6 +27,7 @@ void intake_control() {
     else if (master.get_digital(ScoreTop_Hopper)) {
         // Top out of hopper ( R2 mapping)
         hop = 127;
+        t_hop = 127;
         m   = -127;
         t   = -127;
         ag  = 127;
@@ -42,17 +44,19 @@ void intake_control() {
         // Into Hopper ( L1 mapping)
         m   = -127;
         t   = -127;
+        t_hop = 127;
         piston.set_value(0);
         ejector.set_value(0);
 
     } else {
         // Stop everything
-        m = t = hop = ag = 0;
+        m = t = hop = ag = t_hop = 0;
     }
 
     middle_int.move(m);
     top_intake.move(t);
     hopper.move(hop);
+    tophopper.move(t_hop);
     agitator.move(ag);
 }
 

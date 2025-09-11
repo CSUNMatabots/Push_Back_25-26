@@ -19,6 +19,7 @@ extern pros::MotorGroup rightMotors;
 inline pros::Motor middle_int(12);
 inline pros::Motor top_intake(-11);
 inline pros::Motor hopper(13);
+inline pros::Motor tophopper(5);
 inline pros::Motor agitator(14);
 
 //Sensors and Pneumatics

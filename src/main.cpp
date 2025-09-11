@@ -230,7 +230,9 @@ ASSET(example_txt); // '.' replaced with "_" to make c++ happy
  */
 void autonomous() {
 
-driveTo(24);
+Odom_initialize(0, 0, 0);
+driveTo(12);
+
 // test_trackingwheels();
 
 
