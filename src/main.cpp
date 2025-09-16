@@ -2,6 +2,7 @@
 #include "lemlib/api.hpp" // IWYU pragma: keep
 #include "controls.h"
 #include "liblvgl/llemu.hpp"
+#include "pros/imu.h"
 #include "pros/misc.hpp"
 #include "subsystems.hpp"
 #include "autons.hpp"
@@ -9,6 +10,9 @@
 #include "robot/intake.hpp"
 #include "robot/color_detection.hpp"
 #include "odometry.hpp"
+
+#include "pros/apix.h"
+#include <cstdio>
 
 /*
 To Do...
@@ -196,6 +200,7 @@ void initialize() {
             pros::lcd::print(1, "X: %f", chassis.getPose().x); // x
             pros::lcd::print(2, "Y: %f", chassis.getPose().y); // y
             pros::lcd::print(3, "Theta: %f", chassis.getPose().theta); // heading
+            pros::lcd::print(4, "Imu: %f", imu.get_heading()); // heading
             // log position telemetry
             lemlib::telemetrySink()->info("Chassis pose: {}", chassis.getPose());
             // delay to save resources
@@ -231,7 +236,9 @@ ASSET(example_txt); // '.' replaced with "_" to make c++ happy
 void autonomous() {
 
 Odom_initialize(0, 0, 0);
-driveTo(12);
+pointTurn(45);
+
+// driveTo(12);
 
 // test_trackingwheels();
 
@@ -256,11 +263,27 @@ void run_selected_auton() {
 
 
 //Runs in driver control
-void opcontrol()
-{
-	// controller
-	// loop to continuously update motors
-	while (true) {
+void opcontrol() {
+
+//RUN AUTON FROM PROS TERMINAL 
+// Disable COBS so terminal behaves like normal serial text
+    pros::c::serctl(SERCTL_DISABLE_COBS, NULL);
+
+    printf("Type 'a' then Enter to run autonomous\n");
+
+    while (true) {
+        int ch = getchar();  // read one character from terminal
+        if (ch == 'a') {
+            printf("Running autonomous...\n");
+            autonomous();     // run your autonomous routine
+            printf("Autonomous done!\n");
+        }
+        pros::delay(20);      // keep CPU free
+    }
+
+
+
+while (true) {
   
   if (!auton_running && BTN_CONFIRM_RUN) {
           run_selected_auton();

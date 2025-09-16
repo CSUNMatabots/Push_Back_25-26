@@ -11,6 +11,7 @@
 #include "odometry.hpp"
 #include <cmath>
 #include <cstdio>
+#include <iostream>
 
 double TW_Dia = 2.77; //inches
 
@@ -22,16 +23,20 @@ double TW_offset_x = -5.514;
 // Heading fusion weight (0..1). Closer to 1 → trust IMU more.
 double wIMU = 0.8;
 
+float cycle_time = 30; // in millisec
+
 /* --------------------------------
 Constants
 */ 
-float MoE_Drive = 0.1;
+float MoE_Drive = 1;
 
 float MoE_Turn = 0.5;
 
-float drive_kP = 10;
+float drive_kP = 2;
+float drive_kD = 15;
 
-float drive_kD = 0;
+float turn_kP = 1.5;
+float turn_kD = 0;
 
 // ========================== Helper Functions ==========================
 void clearEncoders() {
@@ -109,11 +114,11 @@ int update_positon() {
 //Change in pos for theta (deltas), imu and horizontal TW
     double dtheta_wheel = 0.0;
         if (std::fabs(TW_offset_x) > 0) { //make sure that horiz tracking wheel offset not 0
-            dtheta_wheel = dx / TW_offset_x;   // update horizontal wheel angle change, dtheta = arc length / TW wheel offset (radius)
+            dtheta_wheel = (dx / TW_offset_x);   // update horizontal wheel angle change, dtheta = arc length / TW wheel offset (radius)
         }
 
-    double dtheta_imu = reduceAngle(imu_deg - prev_heading_deg);
-        prev_heading_deg = reduceAngle(prev_heading_deg + dtheta_imu); //update imu heading by adding prev imu deg to delta to get new value 
+    double dtheta_imu = (imu_deg - prev_heading_deg); //Deg 
+        prev_heading_deg = (prev_heading_deg + dtheta_imu); 
 
 //Combine dtheta values from imu and horizontal TW  
     double dTheta = wIMU * dtheta_imu + (1.0 - wIMU) * dtheta_wheel; //sclaes the theta (wheel & imu) contribution
@@ -125,17 +130,17 @@ int update_positon() {
 double dx_trans = dx - dTheta * TW_offset_x;
 double dy_trans = dy - (-dTheta * TW_offset_y); // dy_trans = dy since TW_offset_y = 0 in this case
 
-double theta_mid = reduceAngle(theta + (dTheta/2));
+double theta_mid = (theta + (dTheta/2)) * (M_PI/180.0); //Radians 
 
-//Rotate to field coordinates not robot coor
-double dx_f = cos(theta_mid) * dx_trans - sin(theta_mid) * dy_trans;
+//Rotate to field coordinates not robot coor (shouldnt affect heading)
+double dx_f = cos(theta_mid) * dx_trans - sin(theta_mid) * dy_trans; 
 double dy_f = sin(theta_mid) * dx_trans + cos(theta_mid) * dy_trans;
 
 
 //update position
 x  += dx_f;                 // update field X position
 y  += dy_f;                 // update field Y position
-theta  = reduceAngle(theta + dTheta); // update heading (wrap to [-π, π])
+theta  = theta + dTheta; // update heading in deg 
 
 return 1; 
 
@@ -148,8 +153,7 @@ float getTheta(){ return theta; }
 
 #pragma region Motion_Control 
 
-void driveTo (double target)
-{
+void driveTo (double target) {
 
     float driveError = 127 - (127*(getYPos()/target)); 
     float driveDirec = std::fabs(target) / target; //direction = |target| / target (gives 1 or -1)
@@ -161,7 +165,7 @@ void driveTo (double target)
 
         update_positon(); 
 
-        printf("Y-value: %.2f", getYPos()); //should print to pros terminal (if not use std::cout <<)
+        std::cout << "Y-value: %.2f" << y << std::endl; //should print to pros terminal 
 
         driveError = 127 - (127*(getYPos()/target)); 
         deltaDriveError = driveError - prevDriveError;
@@ -171,7 +175,7 @@ void driveTo (double target)
 
         setDriveVelocity(driveDirec * driveSpeed, driveDirec * driveSpeed);
     
-    pros::delay(10);
+    pros::delay(cycle_time);
     
     }
     
@@ -179,11 +183,62 @@ stopDrive();
 
 }
 
+void pointTurn(double (angle_deg)) {
+
+angle_deg = reduceAngle(angle_deg);
+
+double turnError = 127 - 127*((std::fabs(angle_deg) - getTheta())); //only place you should need to reduceAngle, in deg 
+
+int turnDirec = fabs(angle_deg)/angle_deg;
+
+float deltaTurnError = 0;
+float prevTurnError = turnError;
+
+while(turnError != 0) {
+
+        update_positon(); 
+
+        std::cout << "Theta: %.2f" << theta << std::endl;
+
+        turnError = 127 - 127*((std::fabs(angle_deg) - getTheta()));
+
+        deltaTurnError = turnError - prevTurnError;
+        prevTurnError = turnError;
+
+        float turnSpeed = (turnError * turn_kP) + (deltaTurnError * turn_kD);
+
+        setDriveVelocity(turnDirec * turnSpeed, turnDirec * -turnSpeed); //make one side neg for direc
+
+    pros::delay(cycle_time);
+
+    }
+
+stopDrive();
+
+}
 
 
 
+void moveTo (double x_1, double y_1, double theta_1) {
 
+    pointTurn(theta);
 
+    double linear_dist = sqrt(pow(x_1 - x, 2) + pow(y_1 - y, 2));
+
+    driveTo(linear_dist);
+
+    x_1 = x, y_1 = y, theta_1 = theta;
+
+}
+
+/*
+1. pointTurn to target theta value
+      exit within certain margin of error and move onto next 
+2. Calculate dist between cartesian points
+3. assign to driveTo function 
+4. Save x, y, theta as new values to be used for next call   
+
+*/
 
 
 
