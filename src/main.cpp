@@ -13,7 +13,7 @@
 
 #include "pros/apix.h"
 #include <cstdio>
-
+#include <iostream>
 /*
 To Do...
 
@@ -36,8 +36,8 @@ pros::Controller master(pros::E_CONTROLLER_MASTER);
 pros::MotorGroup leftMotors({-8, -9, -10}, pros::MotorGearset::blue);
 pros::MotorGroup rightMotors({18, 19, 20}, pros::MotorGearset::blue);
 
-lemlib::TrackingWheel horizontalTW(&horizontalEnc, 2.77, -5.514);
-lemlib::TrackingWheel verticalTW(&verticalEnc, 2.77, 0);
+lemlib::TrackingWheel horizontalTW(&horizontalEnc, 2, -5.514);
+lemlib::TrackingWheel verticalTW(&verticalEnc, 2, 0);
 lemlib::Drivetrain drivetrain(&leftMotors, &rightMotors, 12.5, lemlib::Omniwheel::NEW_4, 480, 5);
 
 lemlib::ControllerSettings linearController(16, // proportional gain (kP)
@@ -181,7 +181,8 @@ void initialize() {
 	chassis.calibrate();	 // calibrate sensors
   eye.set_led_pwm(100);
   auton_selector();
-
+  printf("terminal works");
+  std::cout << "cout works" << std::endl;
 	// the default rate is 50. however, if you need to change the rate, you
 	// can do the following.
 	// lemlib::bufferedStdout().setRate(...);
@@ -197,11 +198,14 @@ void initialize() {
 						  {
         while (true) {
             // print robot location to the brain screen
-            pros::lcd::print(1, "X: %f", chassis.getPose().x); // x
+             pros::lcd::print(1, "X: %f", chassis.getPose().x); // x
             pros::lcd::print(2, "Y: %f", chassis.getPose().y); // y
             pros::lcd::print(3, "Theta: %f", chassis.getPose().theta); // heading
-            pros::lcd::print(4, "Imu: %f", imu.get_heading()); // heading
+            // pros::lcd::print(4, "Imu: %f", imu.get_heading()); // heading
             // log position telemetry
+
+            
+
             lemlib::telemetrySink()->info("Chassis pose: {}", chassis.getPose());
             // delay to save resources
             pros::delay(50);
@@ -236,9 +240,9 @@ ASSET(example_txt); // '.' replaced with "_" to make c++ happy
 void autonomous() {
 
 Odom_initialize(0, 0, 0);
-pointTurn(45);
+//pointTurn(45);
 
-// driveTo(12);
+driveTo(24);
 
 // test_trackingwheels();
 
@@ -267,7 +271,7 @@ void opcontrol() {
 
 //RUN AUTON FROM PROS TERMINAL 
 // Disable COBS so terminal behaves like normal serial text
-    pros::c::serctl(SERCTL_DISABLE_COBS, NULL);
+  /*  pros::c::serctl(SERCTL_DISABLE_COBS, NULL);
 
     printf("Type 'a' then Enter to run autonomous\n");
 
@@ -279,7 +283,7 @@ void opcontrol() {
             printf("Autonomous done!\n");
         }
         pros::delay(20);      // keep CPU free
-    }
+    }*/
 
 
 

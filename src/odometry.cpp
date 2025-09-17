@@ -10,33 +10,28 @@
 #include "subsystems.hpp"
 #include "odometry.hpp"
 #include <cmath>
-#include <cstdio>
-#include <iostream>
 
-double TW_Dia = 2.77; //inches
+double TW_Dia = 2; //inches
 
-// double x = 0.0, y = 0.0, theta = 0.0;
+double x = 0.0, y = 0.0, theta = 0.0;
+int prev_y = 0, prev_x = 0, prev_heading_deg = 0;
 
 double TW_offset_y = 0;
-double TW_offset_x = -5.514; 
+double TW_offset_x = -5.15; //correct value 
 
 // Heading fusion weight (0..1). Closer to 1 → trust IMU more.
 double wIMU = 0.8;
 
-float cycle_time = 30; // in millisec
-
 /* --------------------------------
 Constants
 */ 
-float MoE_Drive = 1;
+float MoE_Drive = 0.1;
 
 float MoE_Turn = 0.5;
 
-float drive_kP = 2;
-float drive_kD = 15;
+float drive_kP = 10;
 
-float turn_kP = 1.5;
-float turn_kD = 0;
+float drive_kD = 0;
 
 // ========================== Helper Functions ==========================
 void clearEncoders() {
@@ -56,43 +51,34 @@ int reduceAngle(int angle_deg) {
  return angle_deg;
 }   
 
-double x, y, theta;
-double prev_x, prev_y, prev_heading_deg; 
-
 void Odom_initialize(double x_0, double y_0, double theta_0) {
-     x_0 = prev_x; y_0 = prev_y; theta_0 = prev_heading_deg;
+     x = x_0; y = y_0; theta = reduceAngle(theta_0);
 
-    // prev_y = verticalEnc.get_position() / 36000;   // baseline in revolutions
-    // prev_x = horizontalEnc.get_position() / 36000;
-    // prev_heading_deg = imu.get_heading();
+    clearEncoders();
+
+    prev_y = verticalEnc.get_position() / 36000;   // baseline in revolutions
+    prev_x = horizontalEnc.get_position() / 36000;
+    prev_heading_deg = imu.get_heading();
 
 }
 
 void setDriveVelocity(double LSpeed, double RSpeed) {
-
 leftMotors.move(LSpeed);
-    leftMotors.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 rightMotors.move(RSpeed);
-    rightMotors.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 
 }
 
 void stopDrive() {
 leftMotors.move(0);
-    leftMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 rightMotors.move(0);
-    rightMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 }
 
 
 // =============================================================
-
-#pragma region Update Odometry
-
 int update_positon() {
 
 //Read encoder values
-    double v_enc = verticalEnc.get_position(); //in centi-degrees (1 centi_deg = 1/36000 rotations)
+    double v_enc = verticalEnc.get_position(); 
     double h_enc = horizontalEnc.get_position();
     double imu_deg = imu.get_heading(); 
 
@@ -104,21 +90,21 @@ int update_positon() {
     float dist_x = h_rev * M_PI * TW_Dia;
 
 //Change in pos for x and y (deltas)
-    double dy = dist_y - prev_y;
-        prev_y = dist_y;
+    double dy = dist_y - (prev_y * M_PI * TW_Dia);
+        dist_y = prev_y;
 
-    double dx = dist_x - prev_x;
-        prev_x = dist_x;
+    double dx = dist_x - (prev_x* M_PI * TW_Dia);
+        dist_x = prev_x;
 
 
 //Change in pos for theta (deltas), imu and horizontal TW
     double dtheta_wheel = 0.0;
         if (std::fabs(TW_offset_x) > 0) { //make sure that horiz tracking wheel offset not 0
-            dtheta_wheel = (dx / TW_offset_x);   // update horizontal wheel angle change, dtheta = arc length / TW wheel offset (radius)
+            dtheta_wheel = dx / TW_offset_x;   // update horizontal wheel angle change, dtheta = arc length / TW wheel offset (radius)
         }
 
-    double dtheta_imu = (imu_deg - prev_heading_deg); //Deg 
-        prev_heading_deg = (prev_heading_deg + dtheta_imu); 
+    double dtheta_imu = reduceAngle(imu_deg - prev_heading_deg);
+        prev_heading_deg = reduceAngle(prev_heading_deg + dtheta_imu); //update imu heading by adding prev imu deg to delta to get new value 
 
 //Combine dtheta values from imu and horizontal TW  
     double dTheta = wIMU * dtheta_imu + (1.0 - wIMU) * dtheta_wheel; //sclaes the theta (wheel & imu) contribution
@@ -130,19 +116,21 @@ int update_positon() {
 double dx_trans = dx - dTheta * TW_offset_x;
 double dy_trans = dy - (-dTheta * TW_offset_y); // dy_trans = dy since TW_offset_y = 0 in this case
 
-double theta_mid = (theta + (dTheta/2)) * (M_PI/180.0); //Radians 
+double theta_mid = reduceAngle(theta + (dTheta/2));
 
-//Rotate to field coordinates not robot coor (shouldnt affect heading)
-double dx_f = cos(theta_mid) * dx_trans - sin(theta_mid) * dy_trans; 
+//Rotate to field coordinates not robot coor
+double dx_f = cos(theta_mid) * dx_trans - sin(theta_mid) * dy_trans;
 double dy_f = sin(theta_mid) * dx_trans + cos(theta_mid) * dy_trans;
 
 
 //update position
 x  += dx_f;                 // update field X position
 y  += dy_f;                 // update field Y position
-theta  = theta + dTheta; // update heading in deg 
+theta  = reduceAngle(theta + dTheta); // update heading (wrap to [-π, π])
 
-return 1; 
+return y;
+return x;
+return theta; 
 
 }
 
@@ -150,12 +138,14 @@ float getXPos(){ return x; }
 float getYPos(){ return y; }
 float getTheta(){ return theta; }
 
+// #pragma region Motion_Control 
 
-#pragma region Motion_Control 
 
-void driveTo (double target) {
+void driveTo (double target)
+{
+    Odom_initialize(0, 0, 0);
 
-    float driveError = 127 - (127*(getYPos()/target)); 
+    float driveError = 1 - (getYPos() / target); //error = 1 - (current position / target position)
     float driveDirec = std::fabs(target) / target; //direction = |target| / target (gives 1 or -1)
 
     float deltaDriveError = 0;
@@ -165,9 +155,7 @@ void driveTo (double target) {
 
         update_positon(); 
 
-        std::cout << "Y-value: %.2f" << y << std::endl; //should print to pros terminal 
-
-        driveError = 127 - (127*(getYPos()/target)); 
+        driveError = 1 - (getYPos() / target);
         deltaDriveError = driveError - prevDriveError;
         prevDriveError = driveError;
 
@@ -175,7 +163,7 @@ void driveTo (double target) {
 
         setDriveVelocity(driveDirec * driveSpeed, driveDirec * driveSpeed);
     
-    pros::delay(cycle_time);
+    pros::delay(5);
     
     }
     
@@ -183,62 +171,11 @@ stopDrive();
 
 }
 
-void pointTurn(double (angle_deg)) {
-
-angle_deg = reduceAngle(angle_deg);
-
-double turnError = 127 - 127*((std::fabs(angle_deg) - getTheta())); //only place you should need to reduceAngle, in deg 
-
-int turnDirec = fabs(angle_deg)/angle_deg;
-
-float deltaTurnError = 0;
-float prevTurnError = turnError;
-
-while(turnError != 0) {
-
-        update_positon(); 
-
-        std::cout << "Theta: %.2f" << theta << std::endl;
-
-        turnError = 127 - 127*((std::fabs(angle_deg) - getTheta()));
-
-        deltaTurnError = turnError - prevTurnError;
-        prevTurnError = turnError;
-
-        float turnSpeed = (turnError * turn_kP) + (deltaTurnError * turn_kD);
-
-        setDriveVelocity(turnDirec * turnSpeed, turnDirec * -turnSpeed); //make one side neg for direc
-
-    pros::delay(cycle_time);
-
-    }
-
-stopDrive();
-
-}
 
 
 
-void moveTo (double x_1, double y_1, double theta_1) {
 
-    pointTurn(theta);
 
-    double linear_dist = sqrt(pow(x_1 - x, 2) + pow(y_1 - y, 2));
-
-    driveTo(linear_dist);
-
-    x_1 = x, y_1 = y, theta_1 = theta;
-
-}
-
-/*
-1. pointTurn to target theta value
-      exit within certain margin of error and move onto next 
-2. Calculate dist between cartesian points
-3. assign to driveTo function 
-4. Save x, y, theta as new values to be used for next call   
-
-*/
 
 
 
@@ -252,8 +189,10 @@ void moveTo (double x_1, double y_1, double theta_1) {
 
 
 /** 
-Samiul Code ================
-
+*
+* Samiul Code 
+*
+*/ 
 
 float currentPosX = 0, currentPosY = 0, currentPosTheta = 0;
 //x = current position
@@ -338,4 +277,4 @@ void driveTo()
     
     
 }
-*/
+*/// #pragma endregion
