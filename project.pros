@@ -298,7 +298,8 @@
       }
     },
     "upload_options": {
-      "slot": 3
+      "slot": 3,
+      "description": "Logans's Github PushBack Code"
     },
     "use_early_access": false
   }

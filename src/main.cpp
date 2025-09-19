@@ -181,34 +181,29 @@ void initialize() {
 	chassis.calibrate();	 // calibrate sensors
   eye.set_led_pwm(100);
   auton_selector();
-  printf("terminal works");
-  std::cout << "cout works" << std::endl;
-	// the default rate is 50. however, if you need to change the rate, you
-	// can do the following.
-	// lemlib::bufferedStdout().setRate(...);
-	// If you use bluetooth or a wired connection, you will want to have a rate of 10ms
 
-	// for more information on how the formatting for the loggers
-	// works, refer to the fmtlib docs
+  Odom_initialize(0, 0, 0);
 
-	// thread to for brain screen and position logging
+  // printf("terminal works");
+  // std::cout << "cout works" << std::endl;
 
 
   	pros::Task screenTask([&]()
 						  {
         while (true) {
-            // print robot location to the brain screen
-             pros::lcd::print(1, "X: %f", chassis.getPose().x); // x
-            pros::lcd::print(2, "Y: %f", chassis.getPose().y); // y
-            pros::lcd::print(3, "Theta: %f", chassis.getPose().theta); // heading
+          update_position();
+          // pros::lcd::print(1, "X: %.2f in", x);
+          pros::lcd::print(1, "Y: %.2f in", y);
+          pros::lcd::print(2, "Theta: %.1f deg", theta);
+          pros::delay(50);
+            
+            
             // pros::lcd::print(4, "Imu: %f", imu.get_heading()); // heading
             // log position telemetry
 
-            
-
-            lemlib::telemetrySink()->info("Chassis pose: {}", chassis.getPose());
+            // lemlib::telemetrySink()->info("Chassis pose: {}", chassis.getPose());
             // delay to save resources
-            pros::delay(50);
+
         } });
 }
 
@@ -237,14 +232,18 @@ ASSET(example_txt); // '.' replaced with "_" to make c++ happy
  *
  * This is an example autonomous routine which demonstrates a lot of the features LemLib has to offer
  */
+
+#pragma region Autonomous 
+
 void autonomous() {
 
 Odom_initialize(0, 0, 0);
-//pointTurn(45);
+moveTo(-24, 24, -45);
 
-driveTo(24);
+// pointTurn(180);
+// driveTo(48);
 
-// test_trackingwheels();
+
 
 
 }
@@ -289,9 +288,9 @@ void opcontrol() {
 
 while (true) {
   
-  if (!auton_running && BTN_CONFIRM_RUN) {
-          run_selected_auton();
-      }
+  // if (!auton_running && BTN_CONFIRM_RUN) {
+  //         run_selected_auton();
+  //     }
 
 
   if (!auton_running) {

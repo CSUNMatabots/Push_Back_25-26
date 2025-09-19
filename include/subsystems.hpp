@@ -16,16 +16,15 @@ extern pros::MotorGroup leftMotors;
 extern pros::MotorGroup rightMotors;
 
 // Ports up to date 
-inline pros::Motor middle_int(12);
+inline pros::MotorGroup middle_int({12,-13});
 inline pros::Motor top_intake(-11);
-inline pros::Motor hopper(13);
-inline pros::Motor tophopper(5);
-inline pros::Motor agitator(14);
+inline pros::Motor hopper(14);
+inline pros::Motor agitator(15);
 
 //Sensors and Pneumatics
-inline pros::adi::Pneumatics piston('H', false);
-inline pros::adi::Pneumatics ejector('G', false);
-inline pros::Optical eye (12);
+inline pros::adi::Pneumatics Matchload('H', false);
+inline pros::adi::Pneumatics Gate('G', false);
+inline pros::Optical eye (5);
 // inline pros::Distance distance_sensor(20);
 
 inline pros::Imu imu(3);

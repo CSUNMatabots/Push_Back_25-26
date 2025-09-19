@@ -6,6 +6,7 @@
 #include "subsystems.hpp"
 
 #include "robot/intake.hpp"
+#include "robot/color_detection.hpp"
 
 
 
@@ -59,8 +60,7 @@ lemlib::MoveToPointParams speedParams = {.maxSpeed = 127};
 chassis.setPose(-17, -63.25, 0);
 
 //Start intakes to pick up any game elements that are in the path
-b_intake_speed(-127);
-t_intake_speed(-127);
+
   
     // --- Block 1: go slow, ensure contact ---
     chassis.moveToPoint(-17, -39.25, 2000);
@@ -100,13 +100,7 @@ t_intake_speed(-127);
     chassis.waitUntilDone();
 
 
-    // shooter/intakes like your original
-    t_intake_speed(-127);
-    b_intake_speed(-127);
-   
-    pros::delay(3000);
-    t_intake_speed(0);
-    b_intake_speed(0);
+ 
    
 }
 
