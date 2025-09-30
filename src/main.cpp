@@ -182,7 +182,6 @@ void initialize() {
   eye.set_led_pwm(100);
   auton_selector();
 
-  Odom_initialize(0, 0, 0);
 
   // printf("terminal works");
   // std::cout << "cout works" << std::endl;
@@ -236,12 +235,12 @@ ASSET(example_txt); // '.' replaced with "_" to make c++ happy
 #pragma region Autonomous 
 
 void autonomous() {
-
 Odom_initialize(0, 0, 0);
-moveTo(-24, 24, -45);
 
-// pointTurn(180);
-// driveTo(48);
+moveTo(-24, 24, 45);
+
+// pointTurn(45);
+// pointTurn(0);
 
 
 
@@ -268,46 +267,32 @@ void run_selected_auton() {
 //Runs in driver control
 void opcontrol() {
 
-//RUN AUTON FROM PROS TERMINAL 
-// Disable COBS so terminal behaves like normal serial text
-  /*  pros::c::serctl(SERCTL_DISABLE_COBS, NULL);
-
-    printf("Type 'a' then Enter to run autonomous\n");
-
-    while (true) {
-        int ch = getchar();  // read one character from terminal
-        if (ch == 'a') {
-            printf("Running autonomous...\n");
-            autonomous();     // run your autonomous routine
-            printf("Autonomous done!\n");
-        }
-        pros::delay(20);      // keep CPU free
-    }*/
+  // autonomous();
 
 
 
-while (true) {
-  
-  // if (!auton_running && BTN_CONFIRM_RUN) {
-  //         run_selected_auton();
-  //     }
+  while (true) {
+    
+    // // if (!auton_running && BTN_CONFIRM_RUN) {
+    // //         run_selected_auton();
+    // //     }
+
+    // if (!auton_running) {
 
 
-  if (!auton_running) {
 
-		int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
-		int rightY = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
-    int rightX = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
-		// move the chassis with curvature drive
-		chassis.tank(leftY, rightY);
+      int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+      int rightY = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
+      int rightX = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+      // move the chassis with curvature drive
+      chassis.tank(leftY, rightY);
 
-//Robot Systems
-		intake_control();
-    objectDetectionTask();
+  //Robot Systems
+      intake_control();
+      objectDetectionTask();
 
-    }
+      }
 
-    pros::delay(10);
+      pros::delay(10);
 
-  }
 }

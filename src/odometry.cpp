@@ -30,16 +30,17 @@ float cycle_time = 20; // in millisec
 
 double MoE_Drive = 0.75;
 
-double MoE_Turn = 0.5;
+double MoE_Turn = 2;
 
-double drive_kP = 3.5;
+double drive_kP = 3;
 double drive_kD = 20;
 
-double turn_kP = 3;
-double turn_kD = 12;
+double turn_kP = 2.5; //no larger than 1 
+double turn_kD = 11;
 
-double kp_heading = 3; //4 but turns out at end
-double kd_heading = 10; 
+// for heading correction in driveTo
+double kp_heading = 0.5; 
+double kd_heading = 5; 
 
 // ========================== Helper Functions ==========================
 void clearEncoders() {
@@ -49,7 +50,7 @@ void clearEncoders() {
 }
 
 //Angle wrapping to find the shortest turn path 
-int reduceAngle(int angle_deg) {
+double reduceAngle(int angle_deg) {
 
     while(angle_deg <= -180 || angle_deg > 180) {
 
@@ -154,6 +155,9 @@ double theta_mid_rad = theta + (dTheta_rad/2);
 y  += dy;                 // update field Y position
 theta += dTheta_deg; // update heading (deg)
 
+std::cout << "Y-value: %.2f" << y << std::endl; //prints to pros brain terminal 
+std::cout << "Theta: %.2f" << theta << std::endl;
+
 return 1; 
 
 }
@@ -165,45 +169,69 @@ float getTheta(){ return theta; } //in deg
 
 #pragma region Motion_Control 
 
-void driveTo (double target) {
+//first attempt 9/26
 
-    float driveError = 127 - (127*(getYPos()/target)); 
-    float driveDirec = std::fabs(target) / target; //direction = |target| / target (gives 1 or -1)
+void driveTo (double x_1, double y_1) {
 
-    double headingError = kp_heading * getTheta(); //inital 
+    update_position();
+
+    double target = sqrt(pow(x_1 - x, 2) + pow(y_1 - y, 2)); //dist to target, pos value
+
+
+    double targetAngle = atan2(y_1, x_1) * 180.0 / M_PI; //determines drive direc
+    double driveDirec = (targetAngle > 0) ? 1 : -1;
+
+    const double y_start = y;
+    const double holdHeading = theta; // intial hold condition 
+    // target = target * driveDirec;
+
+    double driveError = fabs(target - y_start); // calculates intial drive Err, dir dealt with separately
+
+ 
     // float headingDirec = std::fabs(getTheta()) / getTheta(); 
 
     float deltadriveError = 0;
     float deltaheadingError = 0;
     float prevDriveError = driveError;
-    float prevheadingError = headingError;
+    float prevHeadErr = holdHeading;
     
-    while (driveError > MoE_Drive ) {
+    while (driveError > MoE_Drive) {
 
         update_position(); 
 
-        std::cout << "Y-value: %.2f" << y << std::endl; //should print to pros terminal 
+        // remaining vector and distance
+        double dist = std::fabs(target - y);
 
-        driveError = 127 - (127*(getYPos()/target)); 
+        float max_speed = 60;
+
+        driveError = max_speed * (dist/target); //fraction 
         deltadriveError = driveError - prevDriveError;
-        prevDriveError = driveError;
+        prevDriveError = driveError; 
 
-        headingError = reduceAngle(getTheta());
-        deltaheadingError = headingError - prevheadingError;
-        prevheadingError = headingError;        
+        // headingError = max_speed - (max_speed*(reduceAngle(getTheta())/theta)); 
+        int headErr = reduceAngle(holdHeading - getTheta()); 
+        int dHeadErr = headErr - prevHeadErr;
+        prevHeadErr = headErr;
 
         float driveSpeed = (driveError * drive_kP) + (deltadriveError * drive_kD);
-        float turnSpeed = (headingError * kp_heading);
-
-        //small speed, no turn (prevent pivot)
-        if (std::fabs(driveSpeed) < 20) 
-            turnSpeed = 0;
+        float turnSpeed = (headErr * kp_heading) + (dHeadErr * kd_heading) ;
 
         // correct turning w/ both sides
-        // passed as an integer
-        float L = clamp127((driveSpeed * driveDirec) - turnSpeed); 
-        float R = clamp127((driveSpeed * driveDirec) + turnSpeed);
+        // passed as an integer 
 
+        float L = 0, R = 0; 
+
+        // different heading correction for foward and back 
+        if (driveDirec == 1) {
+            L = clamp127((driveSpeed * driveDirec) - turnSpeed); 
+            R = clamp127((driveSpeed * driveDirec) + turnSpeed);
+        }
+        
+        else if (driveDirec == -1) {
+            L = clamp127((driveSpeed * driveDirec) + turnSpeed); 
+            R = clamp127((driveSpeed * driveDirec) - turnSpeed);
+        }
+        
         setDriveVelocity(std::round(L), std::round(R));
     
     pros::delay(cycle_time);
@@ -214,37 +242,41 @@ stopDrive(); //hard stop
 
 }
 
-/*
-Add to drive to...
-- correct heading with pid control to make sure it doesnt drift off y-target 
-*/
-
 
 void pointTurn(float (angle_deg)) {
 
-angle_deg = reduceAngle(angle_deg);
+update_position();
 
-double turnError = 127 - 127*((getTheta()/fabs(angle_deg))); //only place you should need to reduceAngle, in deg 
+const double target = reduceAngle(angle_deg);
+// theta = 0;
 
-int turnDirec = fabs(angle_deg)/angle_deg;
+double turnError = fabs(target - getTheta()); // initial difference
 
-float deltaTurnError = 0;
-float prevTurnError = turnError;
+        if (turnError < 1e-6) return;   
+
+
+    int turnDirec = (target - getTheta() > 0) ? 1 : -1;
+
+    float deltaTurnError = 0;
+    float prevTurnError = turnError;
 
 while(turnError > MoE_Turn) {
 
         update_position(); 
 
-        std::cout << "Theta: %.2f" << theta << std::endl;
-
-        turnError = 127 - 127*((getTheta()/fabs(angle_deg)));
+        turnError = fabs((target - getTheta()));
 
         deltaTurnError = turnError - prevTurnError;
         prevTurnError = turnError;
 
         float turnSpeed = (turnError * turn_kP) + (deltaTurnError * turn_kD);
 
-        setDriveVelocity(turnDirec * turnSpeed, turnDirec * -turnSpeed); //make one side neg for direc
+        float L = 0, R = 0;
+
+        L = clamp127(turnDirec * turnSpeed); 
+        R = clamp127(turnDirec * -turnSpeed); //make one side neg for direc
+
+        setDriveVelocity(std::round(L), std::round(R)); 
 
     pros::delay(cycle_time);
 
@@ -256,19 +288,23 @@ stopDrive();
 
 
 
-void moveTo (double x_1, double y_1, double theta_1) {
+void moveTo (double x_m, double y_m, double theta_end) {
 
+    y_m = y_m - y;
+    x_m = x_m - x; 
+
+    double theta_1 = std::atan2(x_m, y_m) * 180.0 / M_PI; //calculates targetAngle again
     pointTurn(theta_1);
 
-    pros::delay(200);
+    driveTo(x_m, y_m);
 
-    double linear_dist = sqrt(pow(x_1 - x, 2) + pow(y_1 - y, 2));
-
-    driveTo(linear_dist);
-
-    x_1 = x, y_1 = y, theta_1 = theta; //save values as new imput
+    pointTurn(theta_end);
 
 }
+
+
+
+
 
 /*
 1. pointTurn to target theta value

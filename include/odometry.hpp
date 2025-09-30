@@ -21,7 +21,7 @@ int update_position();
 
 void pointTurn (float angle_deg); //Turns to specified heading 
 
-void driveTo(double target); //Drives to specified position (only y-pos right now)
+void driveTo(double x_1, double y_1); //Drives to specified position (only y-pos right now)
 
-void moveTo (double x_1, double y_1, double theta_1);
+void moveTo (double x_m, double y_m, double theta_end);
 

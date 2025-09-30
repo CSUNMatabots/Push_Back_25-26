@@ -25,8 +25,8 @@ inline pros::Motor agitator(15);
 inline pros::adi::Pneumatics Matchload('H', false);
 inline pros::adi::Pneumatics Gate('G', false);
 inline pros::Optical eye (5);
-// inline pros::Distance distance_sensor(20);
 
+//Encoders & IMU 
 inline pros::Imu imu(3);
 inline pros::Rotation horizontalEnc(2);
 inline pros::Rotation verticalEnc(-1);

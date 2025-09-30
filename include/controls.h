@@ -5,6 +5,7 @@
 
 //Robot Systems
 #define Into_Hopper_Button pros::E_CONTROLLER_DIGITAL_R2
+#define Matchload_Score pros::E_CONTROLLER_DIGITAL_R1
 #define ScoreTop_Hopper pros::E_CONTROLLER_DIGITAL_L2
 #define ScoreMid_Hopper pros::E_CONTROLLER_DIGITAL_L1
 #define ScoreLow_Hopper master.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)

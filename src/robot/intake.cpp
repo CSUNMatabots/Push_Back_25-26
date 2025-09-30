@@ -3,110 +3,69 @@
 #include "subsystems.hpp"
 #include "controls.h"
 
-int m = 0;   // middle intake
-int t = 0;   // top intake
-int hop = 0; // hopper
-int ag = 0;  // agitator
 
+// PRESET TABLE   
+const IntakePreset preset = {
+    /* top_hop    */ { -127, -127, 127, 127, false, false },
+    /* mid_hop    */ { -60,    40, 127, 127, true,  false },
+    /* low_hop    */ {  80,    0, 127, 127, false, false },
+    /* into_hopper*/ { -127, -127,   0,   0, false, true  },
+    /* macthload  */ {-127, -127,   0,   0, true, true  },
+    /* stop_all   */ {   0,     0,   0,   0, false, false}, //everything set to 0
+    /* stop_motors */{   0,     0,   0,   0}
+
+  };
+
+void IntakeRun(const IntakeConstants& run) {
+    middle_int.move(run.m);
+    top_intake.move(run.t);
+    hopper.move(run.hop);
+    agitator.move(run.ag);
+    Matchload.set_value(run.matchload);
+    Gate.set_value(run.gate);
+}
+
+IntakeConstants current_preset = preset.stop_all; //intially set all to 0 
 
 void intake_control() {
 
-  if (ScoreLow_Hopper) {
-    // Both back-left buttons: score low from hopper
-    hop = 127;
-    m   = 127;
-    ag  = 127;
-    Matchload.set_value(0);      
-    Gate.set_value(0);     
+  if (ScoreLow_Hopper) { // Both back-left buttons: score low from hopper
+    current_preset = preset.low_hop;
+  }
+
+  else if (master.get_digital(Matchload_Score)) { // Both back-left buttons: score low from hopper
+    current_preset = preset.matchload_score;
   }
 
   else if (master.get_digital(ScoreTop_Hopper)) {
-    // Top out of hopper (L2)
-    hop = 127;
-    m   = -127;
-    t   = -127;
-    ag  = 127;
-    Matchload.set_value(0);
-    Gate.set_value(0);      
-  }
+        current_preset = preset.top_hop;
+  }      
 
   else if (master.get_digital(ScoreMid_Hopper)) {
-    // Mid out of hopper (L1)
-    hop = 127;
-    m   = -127;
-    ag  = 127;
-    Matchload.set_value(1);
-    Gate.set_value(0);     
+        current_preset = preset.mid_hop;
   }
-
+        
   else if (master.get_digital(Into_Hopper_Button)) {
-    // Feed into hopper (R2)
-    m   = -127;
-    t   = -127;
-    Matchload.set_value(0);
-    Gate.set_value(1);
-  }
+        current_preset = preset.into_hopper;
+  } 
 
   else {
-    // Stop motors (leave pneumatics latched as-is)
-    m = t = hop = ag = 0;
-  }
+    bool keepMatch = current_preset.matchload;
+    bool keepGate  = current_preset.gate;
 
-  // Apply outputs
-  middle_int.move(m);
-  top_intake.move(t);
-  hopper.move(hop);
-  agitator.move(ag);
+    current_preset = preset.stop_all;    
+
+    current_preset.matchload = keepMatch; // restore pistons
+    current_preset.gate      = keepGate;
+  }     
+
+  IntakeRun(current_preset);
+
 }
 
 // ============ Auton Code =============
 
-//Use with Intake.ScoreLow_Hop()
 
-void motorMove() {
-  middle_int.move(m); top_intake.move(t); hopper.move(hop); agitator.move(ag);
-}
-
-void Intake::ScoreLow_Hop() {
-  hop = 127;
-  m   = 127;
-  ag  = 127;
-  Matchload.set_value(0);      
-  Gate.set_value(0);  
-  motorMove();
-}
-
-void Intake::ScoreMid_Hop() {
-  hop = 127;
-  m   = -127;
-  ag  = 127;
-  Matchload.set_value(1);
-  Gate.set_value(0);  
-  motorMove();
-}
-
-void Intake::ScoreTop_Hop() {
-  hop = 127;
-  m   = -127;
-  t   = -127;
-  ag  = 127;
-  Matchload.set_value(0);
-  Gate.set_value(0); 
-  motorMove();  
-}
-
-void Intake::Into_Hopper() {
-  m   = -127;
-  t   = -127;
-  Matchload.set_value(0);
-  Gate.set_value(1);
-  motorMove();
-}
-
-void Intake::StopAll() {
-    m = t = hop = ag = 0;
-    motorMove();
-}
 
 
 
