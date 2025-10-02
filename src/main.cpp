@@ -180,31 +180,17 @@ void initialize() {
 	pros::lcd::initialize(); // initialize brain screen
 	chassis.calibrate();	 // calibrate sensors
   eye.set_led_pwm(100);
-  auton_selector();
+  // auton_selector();
 
 
   // printf("terminal works");
   // std::cout << "cout works" << std::endl;
 
-
-  	pros::Task screenTask([&]()
-						  {
-        while (true) {
-          update_position();
-          // pros::lcd::print(1, "X: %.2f in", x);
-          pros::lcd::print(1, "Y: %.2f in", y);
-          pros::lcd::print(2, "Theta: %.1f deg", theta);
-          pros::delay(50);
+      
             
             
-            // pros::lcd::print(4, "Imu: %f", imu.get_heading()); // heading
-            // log position telemetry
-
-            // lemlib::telemetrySink()->info("Chassis pose: {}", chassis.getPose());
-            // delay to save resources
-
-        } });
-}
+           
+} 
 
 
 /**
@@ -237,10 +223,13 @@ ASSET(example_txt); // '.' replaced with "_" to make c++ happy
 void autonomous() {
 Odom_initialize(0, 0, 0);
 
-moveTo(-24, 24, 45);
+// moveTo(-24, 24, 90);
 
-// pointTurn(45);
-// pointTurn(0);
+
+
+
+driveTo(0, 48);
+pointTurn(90);
 
 
 
@@ -263,13 +252,21 @@ void run_selected_auton() {
 
 }
 
+void screen_task() {
+while(true) {
+update_position();
+pros::lcd::print(0, "Y: %f", y);
+pros::delay(50);
+}
+
+}
 
 //Runs in driver control
 void opcontrol() {
 
-  // autonomous();
+ autonomous();
 
-
+// screen_task();
 
   while (true) {
     
@@ -279,6 +276,10 @@ void opcontrol() {
 
     // if (!auton_running) {
 
+    update_position();
+    pros::lcd::print(0, "Y: %f", y);
+    pros::lcd::print(1, "Theta: %f", theta);
+
 
 
       int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
@@ -287,10 +288,11 @@ void opcontrol() {
       // move the chassis with curvature drive
       chassis.tank(leftY, rightY);
 
-  //Robot Systems
+     //Robot Systems
       intake_control();
       objectDetectionTask();
 
+      pros::delay(2);
       }
 
       pros::delay(10);

@@ -18,7 +18,7 @@ double x = 0.0, y = 0.0, theta = 0.0;
 double prev_y = 0, prev_x = 0, prev_heading_deg = 0;
 
 double TW_offset_y = 0;
-double TW_offset_x = -5.15; //correct value 
+double TW_offset_x = -6; //correct value -5.15
 
 // Heading fusion weight (0..1). Closer to 1 → trust IMU more.
 double wIMU = 0;
@@ -30,12 +30,12 @@ float cycle_time = 20; // in millisec
 
 double MoE_Drive = 0.75;
 
-double MoE_Turn = 2;
+double MoE_Turn = 0.4;
 
-double drive_kP = 3;
+double drive_kP = 5;
 double drive_kD = 20;
 
-double turn_kP = 2.5; //no larger than 1 
+double turn_kP = 2; //no larger than 1 
 double turn_kD = 11;
 
 // for heading correction in driveTo
@@ -171,100 +171,106 @@ float getTheta(){ return theta; } //in deg
 
 //first attempt 9/26
 
-void driveTo (double x_1, double y_1) {
+const int neededOK = 5;
+int okCount = 0;
 
+
+void driveTo(double x_1, double y_1) {
     update_position();
 
-    double target = sqrt(pow(x_1 - x, 2) + pow(y_1 - y, 2)); //dist to target, pos value
+    // distance to target (positive scalar)
+    double target = sqrt(pow(x_1 - x, 2) + pow(y_1 - y, 2));
 
-
-    double targetAngle = atan2(y_1, x_1) * 180.0 / M_PI; //determines drive direc
+    // determines drive direction
+    double targetAngle = atan2(y_1, x_1) * 180.0 / M_PI;
     double driveDirec = (targetAngle > 0) ? 1 : -1;
+    target = target * driveDirec;
 
     const double y_start = y;
-    const double holdHeading = theta; // intial hold condition 
-    // target = target * driveDirec;
+    const double holdHeading = theta; // initial hold condition
 
-    double driveError = fabs(target - y_start); // calculates intial drive Err, dir dealt with separately
-
- 
-    // float headingDirec = std::fabs(getTheta()) / getTheta(); 
+    // initial drive error
+    double driveError = (target - y_start);
 
     float deltadriveError = 0;
     float deltaheadingError = 0;
-    float prevDriveError = driveError;
+    float prevDriveError = driveError;   // sets initial prevDriveError
     float prevHeadErr = holdHeading;
-    
-    while (driveError > MoE_Drive) {
 
-        update_position(); 
+    while (true) {
+        update_position();
 
-        // remaining vector and distance
-        double dist = std::fabs(target - y);
+        double dist = (target - y);
+        float max_speed = 80;
 
-        float max_speed = 60;
+        // fraction of distance
+        double frac = (dist / target);
+        if (frac > 1.0) frac = 1.0;
+        if (frac < 0.0) frac = 0.0;
 
-        driveError = max_speed * (dist/target); //fraction 
+        driveError = max_speed * frac;
         deltadriveError = driveError - prevDriveError;
-        prevDriveError = driveError; 
+        prevDriveError = driveError;
 
-        // headingError = max_speed - (max_speed*(reduceAngle(getTheta())/theta)); 
-        int headErr = reduceAngle(holdHeading - getTheta()); 
+        int headErr = reduceAngle(holdHeading - getTheta());
         int dHeadErr = headErr - prevHeadErr;
         prevHeadErr = headErr;
 
         float driveSpeed = (driveError * drive_kP) + (deltadriveError * drive_kD);
-        float turnSpeed = (headErr * kp_heading) + (dHeadErr * kd_heading) ;
+        float turnSpeed  = (headErr * kp_heading) + (dHeadErr * kd_heading);
 
-        // correct turning w/ both sides
-        // passed as an integer 
+        float L = 0, R = 0;
 
-        float L = 0, R = 0; 
-
-        // different heading correction for foward and back 
+        // different heading correction for forward and back
         if (driveDirec == 1) {
-            L = clamp127((driveSpeed * driveDirec) - turnSpeed); 
+            L = clamp127((driveSpeed * driveDirec) - turnSpeed);
             R = clamp127((driveSpeed * driveDirec) + turnSpeed);
+        } else if (driveDirec == -1) {
+            L = clamp127((fabs(driveSpeed) * driveDirec) + turnSpeed);
+            R = clamp127((fabs(driveSpeed) * driveDirec) - turnSpeed);
         }
-        
-        else if (driveDirec == -1) {
-            L = clamp127((driveSpeed * driveDirec) + turnSpeed); 
-            R = clamp127((driveSpeed * driveDirec) - turnSpeed);
-        }
-        
-        setDriveVelocity(std::round(L), std::round(R));
-    
-    pros::delay(cycle_time);
-    
-    }
-    
-stopDrive(); //hard stop
 
+        setDriveVelocity(std::round(L), std::round(R));
+
+        // N-cycle settle, exit condition
+        bool inErr = (fabs(dist) <= MoE_Drive);
+        okCount = (inErr) ? okCount + 1 : 0;
+        if (okCount >= neededOK) break;
+
+        pros::delay(cycle_time);
+    }
+
+    stopDrive(); // hard stop
 }
+
 
 
 void pointTurn(float (angle_deg)) {
 
 update_position();
 
-const double target = reduceAngle(angle_deg);
-// theta = 0;
+double target = reduceAngle((angle_deg));
 
-double turnError = fabs(target - getTheta()); // initial difference
+double turnError = (target - theta); // initial difference
+        if (fabs(turnError) < 1e-6) return;   
 
-        if (turnError < 1e-6) return;   
-
-
-    int turnDirec = (target - getTheta() > 0) ? 1 : -1;
+    int turnDirec = (target - theta > 0) ? 1 : -1;
+    
 
     float deltaTurnError = 0;
     float prevTurnError = turnError;
 
-while(turnError > MoE_Turn) {
+while(true) {
 
         update_position(); 
 
-        turnError = fabs((target - getTheta()));
+        double dist = (target - theta);
+        float max_speed = 60;
+
+        // fraction of distance
+        double frac = (dist / fabs(target));
+
+        turnError = max_speed * frac;
 
         deltaTurnError = turnError - prevTurnError;
         prevTurnError = turnError;
@@ -273,10 +279,14 @@ while(turnError > MoE_Turn) {
 
         float L = 0, R = 0;
 
-        L = clamp127(turnDirec * turnSpeed); 
-        R = clamp127(turnDirec * -turnSpeed); //make one side neg for direc
+        L = clamp127(turnSpeed); 
+        R = clamp127(-turnSpeed); //make one side neg for direc
 
         setDriveVelocity(std::round(L), std::round(R)); 
+
+    bool inErr = (fabs(dist) <= MoE_Turn);
+    okCount = (inErr) ? okCount + 1 : 0;
+    if (okCount >= neededOK) break;
 
     pros::delay(cycle_time);
 
