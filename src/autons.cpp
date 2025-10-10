@@ -1,4 +1,5 @@
 #include "autons.hpp"
+#include "controls.h"
 #include "lemlib/chassis/chassis.hpp"
 #include "main.h"
 #include "lemlib/api.hpp"
@@ -7,6 +8,7 @@
 
 #include "robot/intake.hpp"
 #include "robot/color_detection.hpp"
+#include "odometry.hpp"
 
 
 
@@ -49,58 +51,21 @@ pros::lcd::print(2, "Theta: %f", chassis.getPose().theta);
 
 
 void test_run(){
-//Robot is 15" Wide
-//Robot is 12.5" Long
-//Front of the red part of the parking zone is 57" from the middle line
-//Left Edge of red part of the parking zone is 9.5" from the middle line
-
 lemlib::MoveToPointParams params = {.forwards = true};
 lemlib::MoveToPointParams speedParams = {.maxSpeed = 127};
 
-chassis.setPose(-17, -63.25, 0);
+chassis.setPose(0, 0, 0);
 
 //Start intakes to pick up any game elements that are in the path
 
   
     // --- Block 1: go slow, ensure contact ---
-    chassis.moveToPoint(-17, -39.25, 2000);
+    chassis.moveToPose(0, 24, -90, 3000);
     chassis.waitUntilDone();
 
-    chassis.moveToPoint(-17, -24, 2000);
+    chassis.moveToPose(-24, 24, -90, 3000);
     chassis.waitUntilDone();
 
-    chassis.moveToPose (-20, 0, 270, 2500);        // heading specified
-    chassis.waitUntilDone();
-
-    chassis.moveToPoint( 36, 0, 2500);     
-    chassis.waitUntilDone();
-    
-
-    // --- Block 2: to left match-load zone ---
-    chassis.moveToPoint(-36, -24,   2000);
-    chassis.waitUntilDone();
-
-    chassis.moveToPoint(-36, -36,   2000);
-    chassis.waitUntilDone();
-
-    chassis.moveToPoint(-48, -48,   2500);
-    chassis.waitUntilDone();
-
-    chassis.moveToPoint(-51, -62.5, 3000);
-    chassis.waitUntilDone();
-
-    pros::delay(3000); // wait to collect
-
-    // --- Block 3: to left high-goal zone ---
-    chassis.moveToPoint(-50, -45, 2500); 
-    chassis.waitUntilDone();
-
-  
-    chassis.moveToPoint(-50, -36, 2000);
-    chassis.waitUntilDone();
-
-
- 
    
 }
 
@@ -108,7 +73,20 @@ chassis.setPose(-17, -63.25, 0);
 
 
 
-void auton_left() {}
+void auton_skills1() {
+
+moveTo(0, 24, 0);
+IntakeRun(preset.matchload_score);
+
+moveTo(24, 24, 180); //face matchload
+moveTo(24, 10, 180);
+
+
+
+
+}
+
+
 void auton_right() {}
 void auton_skills() {}
 

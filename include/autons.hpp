@@ -2,6 +2,8 @@
 
 
 //Auton paths
+
+void test_run();
 void test_trackingwheels();
 void auton_left();
 void auton_right();

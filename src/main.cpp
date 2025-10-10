@@ -182,6 +182,8 @@ void initialize() {
   eye.set_led_pwm(100);
   // auton_selector();
 
+  Odom_initialize(0, 0, 0);
+
 
   // printf("terminal works");
   // std::cout << "cout works" << std::endl;
@@ -221,17 +223,13 @@ ASSET(example_txt); // '.' replaced with "_" to make c++ happy
 #pragma region Autonomous 
 
 void autonomous() {
-Odom_initialize(0, 0, 0);
+
+test_run();
+
 
 // moveTo(-24, 24, 90);
-
-
-
-
-driveTo(0, 48);
-pointTurn(90);
-
-
+// driveTo(0, 48);
+// pointTurn(90);
 
 
 }
@@ -256,17 +254,13 @@ void screen_task() {
 while(true) {
 update_position();
 pros::lcd::print(0, "Y: %f", y);
-pros::delay(50);
+pros::delay(20);
 }
 
 }
 
 //Runs in driver control
 void opcontrol() {
-
- autonomous();
-
-// screen_task();
 
   while (true) {
     
