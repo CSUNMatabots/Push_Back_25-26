@@ -36,7 +36,7 @@ pros::Controller master(pros::E_CONTROLLER_MASTER);
 pros::MotorGroup leftMotors({-8, -9, -10}, pros::MotorGearset::blue);
 pros::MotorGroup rightMotors({18, 19, 20}, pros::MotorGearset::blue);
 
-lemlib::TrackingWheel horizontalTW(&horizontalEnc, 2, -5.514);
+lemlib::TrackingWheel horizontalTW(&horizontalEnc, 2, -6);
 lemlib::TrackingWheel verticalTW(&verticalEnc, 2, 0);
 lemlib::Drivetrain drivetrain(&leftMotors, &rightMotors, 12.5, lemlib::Omniwheel::NEW_4, 480, 5);
 
@@ -63,7 +63,7 @@ lemlib::ControllerSettings angularController(2.8, // proportional gain (kP)
                                              0 // maximum acceleration (slew)
 );
 
-lemlib::OdomSensors sensors(&verticalTW, nullptr, &horizontalTW, nullptr, &imu);
+lemlib::OdomSensors sensors(&verticalTW, nullptr, &horizontalTW, nullptr, nullptr);
 
 lemlib::ExpoDriveCurve throttleCurve(3, 10, 1.019);
 lemlib::ExpoDriveCurve steerCurve(3, 10, 1.019);
@@ -224,12 +224,14 @@ ASSET(example_txt); // '.' replaced with "_" to make c++ happy
 
 void autonomous() {
 
-test_run();
+// test_run();
 
 
 // moveTo(-24, 24, 90);
-// driveTo(0, 48);
-// pointTurn(90);
+
+driveTo(0, 24);
+pointTurn(90);
+// driveTo(0, 24);
 
 
 }
@@ -261,6 +263,8 @@ pros::delay(20);
 
 //Runs in driver control
 void opcontrol() {
+
+// autonomous();
 
   while (true) {
     

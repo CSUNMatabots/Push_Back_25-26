@@ -60,7 +60,7 @@ chassis.setPose(0, 0, 0);
 
   
     // --- Block 1: go slow, ensure contact ---
-    chassis.moveToPose(0, 24, -90, 3000);
+    chassis.moveToPose(0, 24, 0, 3000);
     chassis.waitUntilDone();
 
     chassis.moveToPose(-24, 24, -90, 3000);

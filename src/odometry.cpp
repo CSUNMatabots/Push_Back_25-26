@@ -28,9 +28,9 @@ float cycle_time = 20; // in millisec
 
 #pragma region Constants
 
-double MoE_Drive = 0.75;
+double MoE_Drive = 1;
 
-double MoE_Turn = 0.4;
+double MoE_Turn = 1;
 
 double drive_kP = 5;
 double drive_kD = 20;
@@ -109,8 +109,8 @@ int update_position() {
     double h_rev = h_enc / 36000;
         
 //Convert rotations to linear distance
-    float dist_y = v_rev * M_PI * TW_Dia;
-    float dist_x = h_rev * M_PI * TW_Dia;
+    double dist_y = v_rev * M_PI * TW_Dia;
+    double dist_x = h_rev * M_PI * TW_Dia;
 
 //Change in pos for x and y (deltas)
     double dy = dist_y - (prev_y);
@@ -169,13 +169,14 @@ float getTheta(){ return theta; } //in deg
 
 #pragma region Motion_Control 
 
-//first attempt 9/26
-
 const int neededOK = 5;
 int okCount = 0;
 
 
+
 void driveTo(double x_1, double y_1) {
+    
+    okCount = 0;
     update_position();
 
     // distance to target (positive scalar)
@@ -196,12 +197,20 @@ void driveTo(double x_1, double y_1) {
     float deltaheadingError = 0;
     float prevDriveError = driveError;   // sets initial prevDriveError
     float prevHeadErr = holdHeading;
+    double max_speed = 0;
 
     while (true) {
         update_position();
 
         double dist = (target - y);
-        float max_speed = 80;
+
+        max_speed = 60;
+
+        // if (fabs(dist) <= 15) {
+        //     max_speed = 30;
+        // } else {
+        //     max_speed = 127;   
+        // }
 
         // fraction of distance
         double frac = (dist / target);
@@ -240,6 +249,10 @@ void driveTo(double x_1, double y_1) {
         pros::delay(cycle_time);
     }
 
+    pros::lcd::print(0, "Exited");
+    pros::lcd::print(1, "Y: %f", y);
+    pros::lcd::print(2, "Theta: %f", theta);
+
     stopDrive(); // hard stop
 }
 
@@ -247,6 +260,7 @@ void driveTo(double x_1, double y_1) {
 
 void pointTurn(float (angle_deg)) {
 
+okCount = 0; 
 update_position();
 
 double target = reduceAngle((angle_deg));
